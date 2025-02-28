@@ -15,6 +15,11 @@ app.use(express.json());
 
 const DB = process.env.DB_CONNECTION_STRING;
 
+//create test route
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 mongoose
   .connect(DB, {})
   .then(() => {
