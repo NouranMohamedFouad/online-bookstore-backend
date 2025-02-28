@@ -3,7 +3,7 @@ import process from 'node:process';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
-// import router from "./routes/index.js";
+import router from './routes/index.js';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const app = express();
 
 app.use(express.json());
 
-// app.use(router);
+app.use(router);
 
 const DB = process.env.DB_CONNECTION_STRING;
 

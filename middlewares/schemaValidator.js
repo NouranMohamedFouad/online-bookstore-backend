@@ -1,9 +1,20 @@
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
+import mongoose from 'mongoose';
+import extendMongoose from 'mongoose-schema-jsonschema';
+
+extendMongoose(mongoose);
 
 const ajv = new Ajv({allErrors: true, useDefaults: true, coerceTypes: true});
 
-function compileSchema(schema) {
-  return ajv.compile(schema);
+addFormats(ajv);
+
+function convertMongooseSchema(mongooseSchema) {
+  return mongooseSchema.jsonSchema();
+}
+
+function compileSchema(jsonSchema) {
+  return ajv.compile(jsonSchema);
 }
 
 function validateData(validator, data) {
@@ -14,4 +25,4 @@ function validateData(validator, data) {
   return data;
 }
 
-export default {compileSchema, validateData};
+export {compileSchema, convertMongooseSchema, validateData};

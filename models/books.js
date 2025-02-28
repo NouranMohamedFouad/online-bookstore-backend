@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import {compileSchema} from '../middlewares/schemaValidator.js';
+import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
 
 const bookSchema = new mongoose.Schema({
   book_id: {
@@ -58,6 +58,8 @@ const bookSchema = new mongoose.Schema({
 
 const Books = mongoose.model('Books', bookSchema);
 
-const validate = compileSchema (bookSchema);
+// const validate = compileSchema (bookSchema);
+const jsonSchema = convertMongooseSchema(bookSchema);
+const validate = compileSchema(jsonSchema);
 
-export default {Books, validate};
+export {Books, validate};
