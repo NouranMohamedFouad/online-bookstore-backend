@@ -1,19 +1,27 @@
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import mongoose from 'mongoose';
-import extendMongoose from 'mongoose-schema-jsonschema';
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
+import mongoose from "mongoose";
+import extendMongoose from "mongoose-schema-jsonschema";
 
 extendMongoose(mongoose);
 
-const ajv = new Ajv({allErrors: true, useDefaults: true, coerceTypes: true});
+const ajv = new Ajv({
+  allErrors: true,
+  useDefaults: true,
+  coerceTypes: true,
+  strict: false,
+});
 
 addFormats(ajv);
 
 function convertMongooseSchema(mongooseSchema) {
-  return mongooseSchema.jsonSchema();
+  const jsonSchema = mongooseSchema.jsonSchema();
+  jsonSchema.additionalProperties = false;
+  return jsonSchema;
 }
 
 function compileSchema(jsonSchema) {
+  jsonSchema.additionalProperties = false;
   return ajv.compile(jsonSchema);
 }
 
@@ -25,4 +33,4 @@ function validateData(validator, data) {
   return data;
 }
 
-export {compileSchema, convertMongooseSchema, validateData};
+export { compileSchema, convertMongooseSchema, validateData };
