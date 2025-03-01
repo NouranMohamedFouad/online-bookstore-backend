@@ -1,0 +1,28 @@
+- Cart management (add/remove books, view cart). (Update some stuff)
+
+1. **User Authentication and Authorization**
+
+   - Users can register, log in, and log out.
+   - Use JWT for authentication and authorization.
+   - Implement role-based access control (e.g., admin vs. regular user).
+
+
+
+Documentation for API
+Documentation for ERD (Diagram)
+
+
+- Implement pagination and filtering for the book list API. 
+
+
+6. **File Handling**
+
+   - Allow admins to upload book covers using `multer` (research required) or online CDN.
+   - Serve static files (e.g., book covers) using Express.
+
+6. **File Handling**
+
+   - Allow admins to upload book covers using `multer` (research required) or online CDN.
+   - Serve static files (e.g., book covers) using Express.
+
+

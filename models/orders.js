@@ -1,35 +1,4 @@
 import mongoose from 'mongoose';
-import AutoIncrementFactory from 'mongoose-sequence';              
-import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
-
-const AutoIncrement = AutoIncrementFactory(mongoose);
-  
-
-const orderSchema = new mongoose.Schema({
-  orderId: {
-    type: Number,
-    unique: true
-  },
-  userId: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  books: [
-    {
-      bookId: {
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Books',
-        required: true
-      },
-      quantity: {
-        type: Number,
-        required: true,
-        min: 1,
-        default: 1 
-      }
-    }
-  ],
 import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
 
 const orderSchema = new mongoose.Schema({
