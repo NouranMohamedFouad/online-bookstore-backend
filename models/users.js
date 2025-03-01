@@ -1,13 +1,19 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3fe66c7 (edits)
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import AutoIncrementFactory from 'mongoose-sequence';
 import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
+<<<<<<< HEAD
 =======
 import process from "node:process";
 import mongoose from "mongoose";
 import AutoIncrementFactory from "mongoose-sequence";
 >>>>>>> 36a6dc4 (commit auth code)
+=======
+>>>>>>> 3fe66c7 (edits)
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
@@ -15,10 +21,14 @@ const userSchema = new mongoose.Schema({
   userId: {
     type: Number,
 <<<<<<< HEAD
+<<<<<<< HEAD
     unique: true
 =======
     min: [1, "User ID must be at least 1"],
 >>>>>>> 36a6dc4 (commit auth code)
+=======
+    unique: true
+>>>>>>> 3fe66c7 (edits)
   },
   name: {
     type: String,
@@ -26,8 +36,13 @@ const userSchema = new mongoose.Schema({
     trim: true,
 <<<<<<< HEAD
     minlength: [3, 'Name must be at least 3 characters'],
+<<<<<<< HEAD
     maxlength: [50, 'Name cannot exceed 50 characters'],
     match: [/^[A-Z]+(?:\s[A-Z]+)*$/i, 'Name should contain only letters and spaces'],
+=======
+    maxlength: [30, 'Name cannot exceed 30 characters'],
+    match: [/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, 'Name should contain only letters and spaces'],
+>>>>>>> 3fe66c7 (edits)
     set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
 =======
     minlength: [3, "Name must be at least 3 characters"],
@@ -60,6 +75,9 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3fe66c7 (edits)
     enum: ['admin', 'customer'],
     default: 'customer',
     required: true
@@ -78,6 +96,7 @@ const userSchema = new mongoose.Schema({
     city: {
       type: String,
 <<<<<<< HEAD
+<<<<<<< HEAD
       match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
 =======
       match: [/^[A-Z\s]+$/i, "City should contain only letters"],
@@ -86,6 +105,13 @@ const userSchema = new mongoose.Schema({
     state: {
       type: String,
       match: [/^[A-Z\s]+$/i, "State should contain only letters"],
+=======
+      match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
+    },
+    state: {
+      type: String,
+      match: [/^[A-Za-z\s]+$/, 'State should contain only letters']
+>>>>>>> 3fe66c7 (edits)
     },
     postalCode: {
       type: String,
@@ -94,7 +120,11 @@ const userSchema = new mongoose.Schema({
     country: {
       type: String,
 <<<<<<< HEAD
+<<<<<<< HEAD
       match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
+=======
+      match: [/^[A-Za-z\s]+$/, 'Country should contain only letters']
+>>>>>>> 3fe66c7 (edits)
     }
   },
   phone: {
@@ -116,6 +146,7 @@ userSchema.pre('save', async function (next) {
   }
 });
 
+<<<<<<< HEAD
 userSchema.pre('findOneAndUpdate', async function (next) {
   if (this._update.password) {
     const salt = await bcrypt.genSalt(10);
@@ -216,4 +247,11 @@ const Users = mongoose.model('Users', userSchema);
 const jsonSchema = convertMongooseSchema(userSchema);
 const validate = compileSchema(jsonSchema);
 
+=======
+userSchema.plugin(AutoIncrement, {inc_field: 'userId', start_seq: 1});
+const Users = mongoose.model('Users', userSchema);
+const jsonSchema = convertMongooseSchema(userSchema);
+const validate = compileSchema(jsonSchema);
+
+>>>>>>> 3fe66c7 (edits)
 export {Users, validate};

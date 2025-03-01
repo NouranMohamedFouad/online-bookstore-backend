@@ -1,5 +1,12 @@
 {
+<<<<<<< HEAD
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "always"
     }
 }
+=======
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  }
+}
+>>>>>>> 3fe66c7 (edits)

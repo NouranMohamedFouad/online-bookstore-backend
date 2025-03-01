@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {reset} from '../helpers/resetCounter.js';
 import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
@@ -49,4 +50,27 @@ export {
   getAll,
   getById,
   update
+=======
+import {validateData} from '../middlewares/schemaValidator.js';
+import {Users, validate} from '../models/users.js';
+
+const create = async (data) => {
+  validateData(validate, data);
+  const users = await Users.create(data);
+
+  return users;
+};
+const getAll = async () => {
+  const users = await Users.find({}).exec();
+  return users;
+};
+const deleteAll = async () => {
+  const result = await Users.deleteMany({});
+  return result;
+};
+export {
+  create,
+  deleteAll,
+  getAll
+>>>>>>> 3fe66c7 (edits)
 };
