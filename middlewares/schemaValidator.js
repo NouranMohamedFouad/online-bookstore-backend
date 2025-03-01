@@ -10,10 +10,13 @@ const ajv = new Ajv({allErrors: true, useDefaults: true, coerceTypes: true});
 addFormats(ajv);
 
 function convertMongooseSchema(mongooseSchema) {
-  return mongooseSchema.jsonSchema();
+  const jsonSchema = mongooseSchema.jsonSchema();
+  jsonSchema.additionalProperties = false;
+  return jsonSchema;
 }
 
 function compileSchema(jsonSchema) {
+  jsonSchema.additionalProperties = false;
   return ajv.compile(jsonSchema);
 }
 
