@@ -18,6 +18,10 @@ router.get('/', async (req, res, next) => {
 
 router.patch('/:id', async (req, res) => {});
 
-router.delete('/:id', async (req, res) => {});
+router.delete('/', async (req, res, next) => {
+  const [err, data] = await BooksController.deleteAll();
+  if (err) return next(new CustomError(err.message, 500));
+  res.json(data);
+});
 
 export default router;

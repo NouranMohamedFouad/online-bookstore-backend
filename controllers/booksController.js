@@ -13,7 +13,12 @@ const getAll = async () => {
   return books;
 };
 
+const deleteAll = async () => {
+  const result = await Books.deleteMany({});
+  return result;
+};
 export const BooksController = {
   create: asyncWrapper(create),
-  getAll: asyncWrapper(getAll)
+  getAll: asyncWrapper(getAll),
+  deleteAll: asyncWrapper(deleteAll)
 };
