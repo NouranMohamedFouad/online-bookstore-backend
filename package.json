@@ -26,12 +26,13 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "eslint": "^9.21.0",
     "express": "^4.21.2",
     "mongoose": "^8.11.0",
-    "nodemon": "^3.1.9",
     "process": "^0.11.10"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.3.0"
+    "@antfu/eslint-config": "^4.3.0",
+    "nodemon": "^3.1.9"
   }
 }
