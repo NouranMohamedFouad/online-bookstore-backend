@@ -28,12 +28,15 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.11.0",
     "mongoose-schema-jsonschema": "^3.0.2",
-    "nodemon": "^3.1.9",
+    "mongoose-sequence": "^6.0.1",
     "process": "^0.11.10"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.3.0"
+    "@antfu/eslint-config": "^4.3.0",
+    "nodemon": "^3.1.9"
   }
 }
