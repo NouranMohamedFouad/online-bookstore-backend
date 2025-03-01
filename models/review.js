@@ -19,9 +19,9 @@ mongoose.connect(DB_URI)
 const AutoIncrement = mongooseSequence(mongoose);
 
 const reviewSchema = new Schema({
-  reviewid: {type: Number, unique: true},
-  userid: {type: Number, ref: 'Users', required: true, index: true},
-  bookid: {type: Number, ref: 'Books', required: true, index: true},
+  reviewId: {type: Number, unique: true},
+  userId: {type: Number, ref: 'Users', required: true, index: true},
+  bookId: {type: Number, ref: 'Books', required: true, index: true},
   rating: {
     type: Number,
     required: true,
@@ -35,7 +35,7 @@ const reviewSchema = new Schema({
   comment: {type: String, trim: true, maxlength: 500}
 }, {timestamps: true});
 
-reviewSchema.plugin(AutoIncrement, {inc_field: 'reviewid'});
+reviewSchema.plugin(AutoIncrement, {inc_field: 'reviewId'});
 
 const jsonSchema = reviewSchema.jsonSchema();
 const Review = mongoose.model('Review', reviewSchema);
