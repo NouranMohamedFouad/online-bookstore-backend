@@ -1,23 +1,43 @@
+<<<<<<< HEAD
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import AutoIncrementFactory from 'mongoose-sequence';
 import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
+=======
+import process from "node:process";
+import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+>>>>>>> 36a6dc4 (commit auth code)
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const userSchema = new mongoose.Schema({
   userId: {
     type: Number,
+<<<<<<< HEAD
     unique: true
+=======
+    min: [1, "User ID must be at least 1"],
+>>>>>>> 36a6dc4 (commit auth code)
   },
   name: {
     type: String,
     required: [true, "Name is required"],
     trim: true,
+<<<<<<< HEAD
     minlength: [3, 'Name must be at least 3 characters'],
     maxlength: [50, 'Name cannot exceed 50 characters'],
     match: [/^[A-Z]+(?:\s[A-Z]+)*$/i, 'Name should contain only letters and spaces'],
     set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
+=======
+    minlength: [3, "Name must be at least 3 characters"],
+    maxlength: [30, "Name cannot exceed 30 characters"],
+    match: [
+      /^[A-Z]+(\s[A-Z]+)*$/i,
+      "Name should contain only letters and must not be spaces only",
+    ],
+    set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase()),
+>>>>>>> 36a6dc4 (commit auth code)
   },
   email: {
     type: String,
@@ -39,9 +59,15 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+<<<<<<< HEAD
     enum: ['admin', 'customer'],
     default: 'customer',
     required: true
+=======
+    enum: ["superadmin", "admin", "seller", "delivery", "customer"],
+    default: "customer",
+    required: true,
+>>>>>>> 36a6dc4 (commit auth code)
   },
   address: {
     street: {
@@ -51,11 +77,15 @@ const userSchema = new mongoose.Schema({
     },
     city: {
       type: String,
+<<<<<<< HEAD
       match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
+=======
+      match: [/^[A-Z\s]+$/i, "City should contain only letters"],
+>>>>>>> 36a6dc4 (commit auth code)
     },
     state: {
       type: String,
-      match: [/^[A-Z\s]+$/i, 'State should contain only letters']
+      match: [/^[A-Z\s]+$/i, "State should contain only letters"],
     },
     postalCode: {
       type: String,
@@ -63,6 +93,7 @@ const userSchema = new mongoose.Schema({
     },
     country: {
       type: String,
+<<<<<<< HEAD
       match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
     }
   },
@@ -96,6 +127,85 @@ userSchema.pre('findOneAndUpdate', async function (next) {
 userSchema.set('toJSON', {
   transform: (doc, {__v, password, ...rest}, options) => rest
 });
+=======
+      default: "Egypt",
+      match: [/^[A-Z\s]+$/i, "Country should contain only letters"],
+    },
+    required: false,
+  },
+  phone: {
+    type: String,
+    required: [true, "Phone number is required"],
+    match: [/^\+?\d{7,15}$/, "Invalid phone number format"],
+    trim: true,
+  },
+});
+
+userSchema.plugin(AutoIncrement, { inc_field: "user_id" });
+
+userSchema.pre("save", async function (next) {
+  // Only run this function if password was actually modified
+  if (!this.isModified("password")) return next();
+
+  // Hash the password with cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // Delete passwordConfirm field
+  this.passwordConfirm = undefined;
+  next();
+});
+
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
+  next();
+});
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  // False means NOT changed
+  return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // console.log({ resetToken }, this.passwordResetToken);
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
+const users = mongoose.model("Users", userSchema);
+>>>>>>> 36a6dc4 (commit auth code)
 
 userSchema.methods.comparePasswords = function (password) {
   return bcrypt.compareSync(password, this.password);
