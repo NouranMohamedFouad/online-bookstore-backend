@@ -5,8 +5,7 @@ import extendMongoose from 'mongoose-schema-jsonschema';
 
 extendMongoose(mongoose);
 
-const ajv = new Ajv({allErrors: true, useDefaults: true, coerceTypes: true});
-
+const ajv = new Ajv({allErrors: true, useDefaults: true, coerceTypes: true, strict: false});
 addFormats(ajv);
 
 function convertMongooseSchema(mongooseSchema) {

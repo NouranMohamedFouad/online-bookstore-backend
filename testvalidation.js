@@ -1,43 +1,36 @@
-import reviewValidationMiddleware from './middlewares/reviewVaildation.js'; // Adjust the path if needed
+import mongoose from 'mongoose';
+import {compileSchema, validateData} from './middlewares/schemaValidator.js';
+import {jsonSchema, Review} from './models/review.js';
 
-// Mock Express objects
-const mockRequest = (body) => ({ body });
-const mockResponse = () => {
-  const res = {};
-  res.status = (code) => {
-    console.log(`Response Status: ${code}`);
-    return res;
-  };
-  res.json = (data) => console.log('Response JSON:', data);
-  return res;
-};
-const mockNext = () => console.log('✅ Validation Passed! Moving to next middleware.');
+// Compile AJV validator
+const validateReview = compileSchema(jsonSchema);
 
-// Test cases
-const testCases = [
-  {
-    name: '✅ Valid Data',
-    body: { userid: 1, bookid: 10, rating: 5, comment: 'Great book!' }
-  },
-  {
-    name: '❌ Missing Comment',
-    body: { userid: 1, bookid: 10, rating: 5 }
-  },
-  {
-    name: '❌ Invalid Rating (Out of Range)',
-    body: { userid: 1, bookid: 10, rating: 6, comment: 'Nice!' }
-  },
-  {
-    name: '❌ Invalid Characters in Comment',
-    body: { userid: 1, bookid: 10, rating: 4, comment: '<script>alert(1)</script>' }
+// Test function
+async function testValidationAndSave() {
+  try {
+    // Sample valid review data
+    const validReview = {
+      userid: 123,
+      bookid: 456,
+      rating: 5,
+      comment: 'Great book!'
+    };
+
+    // Validate using AJV
+    validateData(validateReview, validReview);
+    console.log('✅ Validation passed!');
+
+    // Save to MongoDB
+    const review = new Review(validReview);
+    await review.save();
+    console.log('✅ Review saved successfully!');
+
+    // Close connection after testing
+    await mongoose.connection.close();
+  } catch (err) {
+    console.error('❌ Error:', err.message);
   }
-];
+}
 
-// Run tests
-testCases.forEach((testCase) => {
-  console.log(`\nRunning Test: ${testCase.name}`);
-  const req = mockRequest(testCase.body);
-  const res = mockResponse();
-
-  reviewValidationMiddleware(req, res, mockNext);
-});
+// Run the test
+testValidationAndSave();
