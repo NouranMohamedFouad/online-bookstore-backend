@@ -2,7 +2,7 @@
   "name": "backend-project",
   "type": "module",
   "version": "1.0.0",
-  "description": "",
+  "description": "��#\u0000 \u0000o\u0000n\u0000l\u0000i\u0000n\u0000e\u0000-\u0000b\u0000o\u0000o\u0000k\u0000s\u0000t\u0000o\u0000r\u0000e\u0000-\u0000b\u0000a\u0000c\u0000k\u0000e\u0000n\u0000d\u0000\r\u0000 \u0000",
   "author": "",
   "license": "ISC",
   "homepage": "https://github.com/NouranMohamedFouad/online_bookstore#readme",
@@ -23,18 +23,20 @@
   },
   "dependencies": {
     "ajv": "^8.17.1",
-    "ajv-errors": "^3.0.0",
     "ajv-formats": "^3.0.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.11.0",
+    "mongoose-schema-jsonschema": "^3.0.2",
     "mongoose-sequence": "^6.0.1",
-    "nodemon": "^3.1.9",
     "process": "^0.11.10"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.3.0"
+    "@antfu/eslint-config": "^4.3.0",
+    "nodemon": "^3.1.9"
   }
 }

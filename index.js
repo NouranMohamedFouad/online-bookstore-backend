@@ -1,9 +1,9 @@
-import process from "node:process";
+import process from 'node:process';
 // import cors from 'cors';
-import dotenv from "dotenv";
-import express from "express";
-import mongoose from "mongoose";
-// import router from "./routes/index.js";
+import dotenv from 'dotenv';
+import express from 'express';
+import mongoose from 'mongoose';
+import router from './routes/index.js';
 
 dotenv.config();
 
@@ -11,19 +11,19 @@ const app = express();
 
 app.use(express.json());
 
-// app.use(router);
+app.use(router);
 
 const DB = process.env.DB_CONNECTION_STRING;
 
-//create test route
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+// create test route
+app.get('/', (req, res) => {
+  res.send('Hello World!');
 });
 
 mongoose
   .connect(DB, {})
   .then(() => {
-    console.log("DB connection Done!");
+    console.log('DB connection Done!');
   })
   .catch();
 
