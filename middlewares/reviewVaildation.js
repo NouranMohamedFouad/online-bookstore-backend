@@ -1,4 +1,5 @@
 import Ajv from 'ajv';
+import addErrors from 'ajv-errors';
 import addFormats from 'ajv-formats';
 
 const ajv = new Ajv({
@@ -9,6 +10,7 @@ const ajv = new Ajv({
 });
 
 addFormats(ajv);
+addErrors(ajv);
 
 const reviewSchema = {
   type: 'object',
