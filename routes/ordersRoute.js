@@ -1,27 +1,31 @@
 import express from 'express';
-import {BooksController} from '../controllers/index.js';
+import {OrdersController} from '../controllers/index.js';
 import CustomError from '../helpers/customErrors.js';
 
 const router = express.Router();
 
 router.post('/', async (req, res, next) => {
-  const [err, data] = await BooksController.create(req.body);
+  const [err, data] = await OrdersController.create(req.body);
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
 
 router.get('/', async (req, res, next) => {
-  const [err, data] = await BooksController.getAll();
+  console.log(OrdersController);
+  
+  const [err, data] = await OrdersController.getAll();
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-
-router.patch('/:id', async (req, res) => {});
-
+router.get('/:id', async (req, res) => {
+});
 router.delete('/', async (req, res, next) => {
-  const [err, data] = await BooksController.deleteAll();
-  if (err) return next(new CustomError(err.message, 500));
-  res.json(data);
+  try {
+    const data = await OrdersController.deleteAll();
+    res.json(data);
+  } catch (err) {
+    next(new CustomError(err.message, 500));
+  }
 });
 
 export default router;

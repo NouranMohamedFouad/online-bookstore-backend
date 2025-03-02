@@ -3,18 +3,10 @@ import dotenv from 'dotenv';
 import mongoose, {Schema} from 'mongoose';
 import extendMongoose from 'mongoose-schema-jsonschema';
 import mongooseSequence from 'mongoose-sequence';
+import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
 
 dotenv.config();
 extendMongoose(mongoose);
-
-const DB_URI = process.env.DB_CONNECTION_STRING;
-if (!DB_URI) {
-  throw new Error('Database connection string is missing.');
-}
-
-mongoose.connect(DB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
 
 const AutoIncrement = mongooseSequence(mongoose);
 
@@ -36,8 +28,8 @@ const reviewSchema = new Schema({
 }, {timestamps: true});
 
 reviewSchema.plugin(AutoIncrement, {inc_field: 'reviewId'});
-
-const jsonSchema = reviewSchema.jsonSchema();
 const Review = mongoose.model('Review', reviewSchema);
+const jsonSchema = convertMongooseSchema(reviewSchema);
+const validate = compileSchema(jsonSchema);
 
-export {jsonSchema, Review};
+export {Review, validate};
