@@ -25,8 +25,8 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   const {id} = req.params;
-  const [err, data] = await ReviewController.updateById(id,req.body);
-  if (!data) return next(new CustomError('Review Not Found', 404));
+  const [err, data] = await ReviewController.updateById(id, req.body);
+  if (!data) return next(new CustomError(err, 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
@@ -34,15 +34,10 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   const {id} = req.params;
   const [err, data] = await ReviewController.deleteById(id);
+  
   if (!data) return next(new CustomError('Review Not Found', 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-
-// router.post('/', createReview);
-// router.get('/:reviewId', getReview);
-// router.get('/', getAllReviews);
-// router.put('/:reviewId', updateReview);
-// router.delete('/:reviewId', deleteReview);
 
 export default router;

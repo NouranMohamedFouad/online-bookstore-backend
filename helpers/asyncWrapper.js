@@ -4,6 +4,9 @@ export const asyncWrapper = (fn) => {
       const result = await fn(...args);
       return [null, result];
     } catch (error) {
+      console.log('====================================');
+      console.log(error);
+      console.log('====================================');
       return [error, null];
     }
   };
