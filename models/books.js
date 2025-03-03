@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
-import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
+import { compileSchema, convertMongooseSchema } from '../middlewares/schemaValidator.js';
+import AutoIncrementFactory from 'mongoose-sequence';
+
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const bookSchema = new mongoose.Schema({
-  book_id: {
+  bookId: {
     type: Number,
-    required: true,
-    unique: true
+    unique: true 
   },
   title: {
     type: String,
@@ -56,10 +58,12 @@ const bookSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Apply the auto-increment plugin to the schema
+bookSchema.plugin(AutoIncrement, { inc_field: 'bookId', start_seq: 1 });
+
 const Books = mongoose.model('Books', bookSchema);
 
-// const validate = compileSchema (bookSchema);
 const jsonSchema = convertMongooseSchema(bookSchema);
 const validate = compileSchema(jsonSchema);
 
-export {Books, validate};
+export { Books, validate };
