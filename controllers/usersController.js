@@ -1,8 +1,7 @@
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
-import {validateData,validatePartialData} from '../middlewares/schemaValidator.js';
-import {Users, validate} from '../models/users.js';
 import {reset} from '../helpers/resetCounter.js';
-
+import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
+import {Users, validate} from '../models/users.js';
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
@@ -10,14 +9,14 @@ const create = asyncWrapper(async (data) => {
   return users;
 });
 const getAll = asyncWrapper(async () => {
-  const users = await Users.find({},'name email role phone').exec();
+  const users = await Users.find({}, 'name email role phone').exec();
   return users;
 });
 
-const getById =asyncWrapper( async (id) => {
-  const users = await Users.findOne({userId : id},'name email role phone').exec();
+const getById = asyncWrapper(async (id) => {
+  const users = await Users.findOne({userId: id}, 'name email role phone').exec();
   return users;
-}); 
+});
 
 const deleteAll = asyncWrapper(async () => {
   const result = await Users.deleteMany({});
@@ -26,7 +25,7 @@ const deleteAll = asyncWrapper(async () => {
   return result;
 });
 
-const update = asyncWrapper(async (id,data) => {
+const update = asyncWrapper(async (id, data) => {
   const fieldsToUpdate = {};
   for (const [key, value] of Object.entries(data)) {
     if (value !== undefined && value !== null && value !== '') {
@@ -34,12 +33,12 @@ const update = asyncWrapper(async (id,data) => {
     }
   }
   validatePartialData(validate, fieldsToUpdate);
-  const updatedReview = await Users.findOneAndUpdate({userId:id},fieldsToUpdate,{new: true});
+  const updatedReview = await Users.findOneAndUpdate({userId: id}, fieldsToUpdate, {new: true});
   return updatedReview;
 });
 
 const deleteById = asyncWrapper(async (userId) => {
-  const result = await Users.findOneAndDelete({ userId });
+  const result = await Users.findOneAndDelete({userId});
   return result;
 });
 
@@ -48,6 +47,6 @@ export {
   deleteAll,
   deleteById,
   getAll,
-  update,
-  getById
+  getById,
+  update
 };

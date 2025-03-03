@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     minlength: [3, 'Name must be at least 3 characters'],
     maxlength: [50, 'Name cannot exceed 50 characters'],
-    match: [/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, 'Name should contain only letters and spaces'],
+    match: [/^[A-Z]+(?:\s[A-Z]+)*$/i, 'Name should contain only letters and spaces'],
     set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
   },
   email: {
@@ -51,11 +51,11 @@ const userSchema = new mongoose.Schema({
     },
     city: {
       type: String,
-      match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
+      match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
     },
     state: {
       type: String,
-      match: [/^[A-Za-z\s]+$/, 'State should contain only letters']
+      match: [/^[A-Z\s]+$/i, 'State should contain only letters']
     },
     postalCode: {
       type: String,
@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema({
     },
     country: {
       type: String,
-      match: [/^[A-Za-z\s]+$/, 'Country should contain only letters']
+      match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
     }
   },
   phone: {
@@ -96,6 +96,10 @@ userSchema.pre('findOneAndUpdate', async function (next) {
 userSchema.set('toJSON', {
   transform: (doc, {__v, password, ...rest}, options) => rest
 });
+
+userSchema.methods.comparePasswords = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
 
 userSchema.plugin(AutoIncrement, {inc_field: 'userId', start_seq: 1});
 const Users = mongoose.model('Users', userSchema);
