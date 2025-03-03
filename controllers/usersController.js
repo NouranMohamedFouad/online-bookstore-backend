@@ -1,5 +1,5 @@
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
-import {validateData} from '../middlewares/schemaValidator.js';
+import {validateData,validatePartialData} from '../middlewares/schemaValidator.js';
 import {Users, validate} from '../models/users.js';
 import {reset} from '../helpers/resetCounter.js';
 
@@ -7,25 +7,38 @@ import {reset} from '../helpers/resetCounter.js';
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
   const users = await Users.create(data);
-
   return users;
 });
 const getAll = asyncWrapper(async () => {
-  const users = await Users.find({}).exec();
+  const users = await Users.find({},'name email role phone').exec();
   return users;
 });
+
+const getById =asyncWrapper( async (id) => {
+  const users = await Users.findOne({userId : id},'name email role phone').exec();
+  return users;
+}); 
+
 const deleteAll = asyncWrapper(async () => {
   const result = await Users.deleteMany({});
   await reset('userId');
   console.log('All users deleted and userId counter reset.');
   return result;
 });
-const updateUser = asyncWrapper(async (id, data) => {
-  validateData(validate, data);
-  const updatedUser = await Users.findByIdAndUpdate(id, data, {new: true});
-  return updatedUser;
+
+const update = asyncWrapper(async (id,data) => {
+  const fieldsToUpdate = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && value !== null && value !== '') {
+      fieldsToUpdate[key] = value;
+    }
+  }
+  validatePartialData(validate, fieldsToUpdate);
+  const updatedReview = await Users.findOneAndUpdate({userId:id},fieldsToUpdate,{new: true});
+  return updatedReview;
 });
-const deleteUser = asyncWrapper(async (userId) => {
+
+const deleteById = asyncWrapper(async (userId) => {
   const result = await Users.findOneAndDelete({ userId });
   return result;
 });
@@ -33,7 +46,8 @@ const deleteUser = asyncWrapper(async (userId) => {
 export {
   create,
   deleteAll,
-  deleteUser,
+  deleteById,
   getAll,
-  updateUser
+  update,
+  getById
 };

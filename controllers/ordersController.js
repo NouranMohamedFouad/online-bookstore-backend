@@ -46,12 +46,12 @@ const create = asyncWrapper(async (data) => {
 });
 
 const getAll = asyncWrapper(async () => {
-  const orders = await Orders.find({}).exec();
+  const orders = await Orders.find({},'books totalPrice status').exec();
   return orders;
 });
 
 const getById =asyncWrapper( async (id) => {
-  const orders = await Orders.find({userId : id}).exec();
+  const orders = await Orders.find({userId : id},'books totalPrice status').exec();
   return orders;
 });
 

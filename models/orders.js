@@ -43,6 +43,10 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
+orderSchema.set('toJSON', {
+  transform: (doc, {__v, ...rest}, options) => rest
+});
+
 orderSchema.plugin(AutoIncrement, {inc_field: 'orderId', start_seq: 1});
 const Orders = mongoose.model('Order', orderSchema);
 const jsonSchema = convertMongooseSchema(orderSchema);

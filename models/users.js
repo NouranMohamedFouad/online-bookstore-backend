@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true,
     minlength: [3, 'Name must be at least 3 characters'],
-    maxlength: [30, 'Name cannot exceed 30 characters'],
+    maxlength: [50, 'Name cannot exceed 50 characters'],
     match: [/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, 'Name should contain only letters and spaces'],
     set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
   },
@@ -88,6 +88,10 @@ userSchema.pre('findOneAndUpdate', async function (next) {
     this._update.password = await bcrypt.hash(this._update.password, salt);
   }
   next();
+});
+
+userSchema.set('toJSON', {
+  transform: (doc, {__v, password, ...rest}, options) => rest
 });
 
 userSchema.plugin(AutoIncrement, {inc_field: 'userId', start_seq: 1});
