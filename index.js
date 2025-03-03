@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import CustomError from './helpers/customErrors.js';
+import requestLogger from './middlewares/logging.js';
 import router from './routes/index.js';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use((err, req, res, next) => {
 });
 
 // create test route
+app.use(requestLogger);
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
