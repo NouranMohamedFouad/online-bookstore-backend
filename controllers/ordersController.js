@@ -3,6 +3,8 @@ import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {validateData} from '../middlewares/schemaValidator.js';
 import {Orders, validate} from '../models/orders.js';
 import {Books} from '../models/books.js';
+import {Users} from '../models/users.js';
+
 
 
 const create = asyncWrapper(async (data) => {
@@ -12,12 +14,17 @@ const create = asyncWrapper(async (data) => {
   session.startTransaction();
 
   try {
+    const user = await Users.findById(data.userId).session(session);
+    if (!user) {
+      throw new Error(`user with ID ${data.userId} not found`);
+    }
     let totalPrice=0;
     for (const item of data.books) {
       const book = await Books.findById(item.bookId).session(session);
       if (!book) {
         throw new Error(`Book with ID ${item.bookId} not found`);
       }
+     
       if (book.stock < item.quantity) {
         throw new Error(`Not enough stock for book ID ${item.bookId}`);
       }
