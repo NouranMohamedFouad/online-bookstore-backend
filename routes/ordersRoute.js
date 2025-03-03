@@ -17,8 +17,17 @@ router.get('/', async (req, res, next) => {
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-router.get('/:id', async (req, res) => {
+router.get('/:userId', async (req, res, next) => {
+  const { userId } = req.params;
+  const [err, data] = await OrdersController.getById(userId);
+
+  if (err) return next(new CustomError(err.message, 422));
+  if (!data || data.length === 0) {
+    return next(new CustomError('No orders found for this user', 404));
+  }
+  res.json(data);
 });
+
 router.delete('/', async (req, res, next) => {
   try {
     const data = await OrdersController.deleteAll();

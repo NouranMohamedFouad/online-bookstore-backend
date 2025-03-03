@@ -1,52 +1,49 @@
-// import redis from 'redis';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
-// import CustomError from '../helpers/customErrors.js'
-import {validateData} from '../middlewares/schemaValidator.js';
-import {Review,validate} from '../models/review.js';
+import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
+import {Review, validate} from '../models/review.js';
 
-const getAll =asyncWrapper( async () => {
-  const review = await Review.find({}).exec();
-  return review;
+const getAll = asyncWrapper(async ({page = 1, limit = 10}) => {
+  page = Number(page) || 1;
+  limit = Number(limit) || 10;
+
+  const [reviews, totalReviews] = await Promise.all([
+    Review.find().skip((page - 1) * limit).limit(limit).lean(),
+    Review.countDocuments()
+  ]);
+
+  return {
+    reviews,
+    totalReviews,
+    totalPages: Math.ceil(totalReviews / limit),
+    currentPage: page
+  };
 });
 
-//   const getAll =asyncWrapper( async (data) => {
-//   const {page = 1, limit = 10, sortBy = 'createdAt', order = 'asc', rating}=data;
-//   const skip = (page - 1) * limit;
-//   const filter = {};
-//   if (rating) filter.rating = rating;
-//   const sortOptions = {};
-//   sortOptions[sortBy] = order === 'asc' ? 1 : -1;
-//   const reviews = await Review.find(filter)
-//     .sort(sortOptions)
-//     .skip(skip)
-//     .limit(limit).exec();
-//  const totalReviews = await Review.countDocuments(filter);
-//   return totalReviews;
-// });
-const getById =asyncWrapper( async (id) => {
-  const review = await Review.findOne({reviewId : id}).exec();
+const getById = asyncWrapper(async (id) => {
+  const review = await Review.findOne({reviewId: id}).lean();
   return review;
 });
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
-  const review = await Review.create(data);
-  return review;
+  return await Review.create(data);
 });
-const updateById = asyncWrapper(async (id,data) => {
-  validateData(validate, data);
-  const {rating, comment} = data;
-  const updatedReview = await Review.findOneAndUpdate({ reviewId: id },{rating, comment},{new: true});
+
+const updateById = asyncWrapper(async (id, data) => {
+  const fieldsToUpdate = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && value !== null && value !== '') {
+      fieldsToUpdate[key] = value;
+    }
+  }
+  validatePartialData(validate, fieldsToUpdate);
+  const updatedReview = await Review.findOneAndUpdate({reviewId: id}, fieldsToUpdate, {new: true});
   return updatedReview;
 });
+
 const deleteById = asyncWrapper(async (id) => {
-  const deletedReview = await Review.findOneAndDelete({reviewId: id});
+  const deletedReview = await Review.findOneAndDelete({reviewId: id}).lean();
   return deletedReview;
 });
-export {
-  getAll,
-  create,
-  getById,
-  updateById,
-  deleteById
-};
+
+export {create, deleteById, getAll, getById, updateById};
