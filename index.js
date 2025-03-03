@@ -22,7 +22,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({message: 'Internal Server Error'});
 });
 
-// create test route
+
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
