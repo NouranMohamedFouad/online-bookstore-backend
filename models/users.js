@@ -82,6 +82,14 @@ userSchema.pre('save', async function (next) {
   }
 });
 
+userSchema.pre('findOneAndUpdate', async function (next) {
+  if (this._update.password) {
+    const salt = await bcrypt.genSalt(10);
+    this._update.password = await bcrypt.hash(this._update.password, salt);
+  }
+  next();
+});
+
 userSchema.plugin(AutoIncrement, {inc_field: 'userId', start_seq: 1});
 const Users = mongoose.model('Users', userSchema);
 const jsonSchema = convertMongooseSchema(userSchema);

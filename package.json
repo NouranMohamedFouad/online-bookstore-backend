@@ -30,6 +30,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-async-errors": "^3.1.1",
+    "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.11.0",
     "mongoose-auto-increment": "^5.0.1",
@@ -40,6 +41,8 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.3.0",
-    "nodemon": "^3.1.9"
+    "eslint": "^9.21.0",
+    "nodemon": "^3.1.9",
+    "typescript": "^5.8.2"
   }
 }

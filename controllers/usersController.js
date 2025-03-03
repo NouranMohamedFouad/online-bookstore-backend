@@ -1,7 +1,7 @@
+import mongoose from 'mongoose';
+import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {validateData} from '../middlewares/schemaValidator.js';
 import {Users, validate} from '../models/users.js';
-import {asyncWrapper} from '../helpers/asyncWrapper.js';
-
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
@@ -15,10 +15,23 @@ const getAll = asyncWrapper(async () => {
 });
 const deleteAll = asyncWrapper(async () => {
   const result = await Users.deleteMany({});
+  await mongoose.connection.db.collection('counters').deleteMany({});
   return result;
 });
+const updateUser = asyncWrapper(async (id, data) => {
+  validateData(validate, data);
+  const updatedUser = await Users.findByIdAndUpdate(id, data, {new: true});
+  return updatedUser;
+});
+const deleteUser = asyncWrapper(async (userId) => {
+  const result = await Users.findOneAndDelete({ userId });
+  return result;
+});
+
 export {
   create,
   deleteAll,
-  getAll
+  deleteUser,
+  getAll,
+  updateUser
 };
