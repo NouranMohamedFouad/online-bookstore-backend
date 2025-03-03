@@ -16,6 +16,10 @@ const getAll =asyncWrapper( async () => {
   return books;
 });
 
+const getById =asyncWrapper( async (id) => {
+  const books = await Books.findOne({bookId : id}).exec();
+  return books;
+}); 
 const deleteAll = asyncWrapper(async () => {
   const result = await Books.deleteMany({});
   await reset('bookId');
@@ -60,10 +64,9 @@ const updateById = asyncWrapper(async (id,data) => {
   const updatedReview = await Books.findOneAndUpdate({bookId:id},fieldsToUpdate,{new: true});
   return updatedReview;
 });
-const getById =asyncWrapper( async (id) => {
-  const review = await Review.findOne({reviewId : id}).exec();
-  return review;
-});
+
+
+
 export {
   create,
   getAll,

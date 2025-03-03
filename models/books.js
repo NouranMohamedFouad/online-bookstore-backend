@@ -58,7 +58,10 @@ const bookSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Apply the auto-increment plugin to the schema
+bookSchema.set('toJSON', {
+  transform: (doc, {__v, ...rest}, options) => rest
+});
+
 bookSchema.plugin(AutoIncrement, { inc_field: 'bookId', start_seq: 1 });
 
 const Books = mongoose.model('Books', bookSchema);
