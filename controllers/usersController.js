@@ -15,7 +15,9 @@ const getAll = asyncWrapper(async () => {
 });
 const deleteAll = asyncWrapper(async () => {
   const result = await Users.deleteMany({});
-  await mongoose.connection.db.collection('counters').deleteMany({});
+  await mongoose.connection.db.collection('counters').drop().catch(err => {
+    console.log('Counter collection does not exist, skipping drop.');
+  })
   return result;
 });
 const updateUser = asyncWrapper(async (id, data) => {
