@@ -22,8 +22,14 @@ router.delete('/', async (req, res, next) => {
   res.json(data);
 });
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', async (req, res, next) => {
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
+  const userId = Number.parseInt(req.params.id);
+  console.log('Extracted userId:', userId);  
+  const deletedUser = await UsersController.deleteUser(userId);
+  if (!deletedUser) return next(new CustomError('User not found', 404));
+
+  res.json({ message: 'User deleted successfully', user: deletedUser });
 });
 export default router;
