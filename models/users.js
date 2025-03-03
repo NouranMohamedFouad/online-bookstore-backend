@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, "Name is required"],
     trim: true,
     minlength: [3, 'Name must be at least 3 characters'],
     maxlength: [30, 'Name cannot exceed 30 characters'],
@@ -21,18 +21,21 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [true, "Email is required"],
     trim: true,
     unique: true,
     lowercase: true,
-    match: [/^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i, 'Invalid email format']
+    match: [/^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i, "Invalid email format"],
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters long'],
-    maxlength: [32, 'Password must not exceed 32 characters'],
-    match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/, 'Password must be 8-32 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)']
+    required: [true, "Password is required"],
+    minlength: [8, "Password must be at least 8 characters long"],
+    maxlength: [32, "Password must not exceed 32 characters"],
+    match: [
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/,
+      "Password must be 8-32 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+    ],
   },
   role: {
     type: String,
@@ -44,7 +47,7 @@ const userSchema = new mongoose.Schema({
     street: {
       type: String,
       trim: true,
-      minlength: [3, 'Street must be at least 3 characters long']
+      minlength: [3, "Street must be at least 3 characters long"],
     },
     city: {
       type: String,
@@ -56,7 +59,7 @@ const userSchema = new mongoose.Schema({
     },
     postalCode: {
       type: String,
-      match: [/^\d{4,6}$/, 'Postal Code must be 4 to 6 digits']
+      match: [/^\d{4,6}$/, "Postal Code must be 4 to 6 digits"],
     },
     country: {
       type: String,

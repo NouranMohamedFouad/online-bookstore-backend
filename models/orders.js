@@ -43,9 +43,18 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
+<<<<<<< HEAD
 orderSchema.plugin(AutoIncrement, {inc_field: 'orderId', start_seq: 1});
 const Orders = mongoose.model('Order', orderSchema);
 const jsonSchema = convertMongooseSchema(orderSchema);
 const validate = compileSchema(jsonSchema);
 
 export {Orders, validate};
+=======
+const Orders = mongoose.model('Order', orderSchema);
+
+const jsonSchema = convertMongooseSchema(orderSchema);
+const validate = compileSchema(jsonSchema);
+
+export {Orders, validate};
+>>>>>>> 84c7ca3aa00303067b15ca7007e4b9ceb6c8d1ca
