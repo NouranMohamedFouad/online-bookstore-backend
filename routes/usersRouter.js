@@ -22,7 +22,7 @@ router.get('/:id', async (req, res, next) => {
   if (!data) return next(new CustomError('User Not Found', 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
-})
+});
 
 router.delete('/', async (req, res, next) => {
   const [err, data] = await UsersController.deleteAll();
@@ -41,9 +41,15 @@ router.patch('/:id', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
   const userId = Number.parseInt(req.params.id);
-  console.log('Extracted userId:', userId);  
+  console.log('Extracted userId:', userId);
   const deletedUser = await UsersController.deleteById(userId);
   if (!deletedUser) return next(new CustomError('User not found', 404));
-  res.json({ message: 'User deleted successfully', user: deletedUser });
+  res.json({message: 'User deleted successfully', user: deletedUser});
 });
+// router.post('/login', async (req, res, next) => {
+//   const [err, data] = await asyncWrapper(UsersController.login(req.body));
+//   if (!err) return res.json({token: data});
+
+//   next(err);
+// });
 export default router;
