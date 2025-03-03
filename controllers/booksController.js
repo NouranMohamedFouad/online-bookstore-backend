@@ -61,8 +61,8 @@ const updateById = asyncWrapper(async (id,data) => {
   return updatedReview;
 });
 const getById =asyncWrapper( async (id) => {
-  const review = await Review.findOne({reviewId : id}).exec();
-  return review;
+  const books = await Books.findOne({bookId : id}).exec();
+  return books;
 });
 export {
   create,

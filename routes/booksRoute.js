@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
 });
 router.get('/:id', async (req, res, next) => {
   const {id} = req.params;
-  const [err, data] = await ReviewController.getById(id);
+  const [err, data] = await BooksController.getById(id);
   if (!data) return next(new CustomError('book Not Found', 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
