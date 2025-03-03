@@ -1,21 +1,28 @@
-import express from "express";
-import { paymentController } from "../controllers/index.js";
-import CustomError from "../helpers/customErrors.js";
+import express from 'express';
+import {paymentController} from '../controllers/index.js';
+import CustomError from '../helpers/customErrors.js';
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   const [err, data] = await paymentController.getAll();
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-router.post("/", async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   const [err, data] = await paymentController.create(req.body);
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
+router.patch('/:id', async (req, res, next) => {
+  const {id} = req.params;
+  const [err, data] = await paymentController.updateById(id, req.body);
+  if (!data) return next(new CustomError(err, 404));
+  if (err) return next(new CustomError(err.message, 500));
+  res.json(data);
+});
 
-router.delete("/:id", async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   const [err, data] = await paymentController.deleteById(req.params.id);
   if (err) return next(new CustomError(err.message, 404));
   res.json(data);
