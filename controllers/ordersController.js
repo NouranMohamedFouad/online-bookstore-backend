@@ -4,8 +4,7 @@ import {validateData} from '../middlewares/schemaValidator.js';
 import {Orders, validate} from '../models/orders.js';
 import {Books} from '../models/books.js';
 import {Users} from '../models/users.js';
-
-
+import {reset} from '../helpers/resetCounter.js';
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
@@ -58,6 +57,8 @@ const getById =asyncWrapper( async (id) => {
 
 const deleteAll = async () => {
   const result = await Orders.deleteMany({});
+  await reset('orderId');
+  console.log('All orders deleted and orderId counter reset.');
   return result;
 };
 

@@ -2,10 +2,10 @@ import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {validateData,validatePartialData} from '../middlewares/schemaValidator.js';
 import {Books, validate} from '../models/books.js';
 import {Review} from '../models/review.js';
+import {reset} from '../helpers/resetCounter.js';
 import mongoose from 'mongoose';
 
 const create = asyncWrapper( async (data) => {
-  //valdation 
   validateData(validate, data);
   const book = await Books.create(data);
   return book;
@@ -18,6 +18,8 @@ const getAll =asyncWrapper( async () => {
 
 const deleteAll = asyncWrapper(async () => {
   const result = await Books.deleteMany({});
+  await reset('bookId');
+  console.log('All books deleted and bookID counter reset.');
   return result;
 });
 
@@ -44,7 +46,6 @@ const deleteById = asyncWrapper(async (id) => {
     throw error; 
   }
 });
-
 
 const updateById = asyncWrapper(async (id,data) => {
   const fieldsToUpdate = {};

@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {validateData} from '../middlewares/schemaValidator.js';
 import {Users, validate} from '../models/users.js';
+import {reset} from '../helpers/resetCounter.js';
+
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
@@ -15,9 +16,8 @@ const getAll = asyncWrapper(async () => {
 });
 const deleteAll = asyncWrapper(async () => {
   const result = await Users.deleteMany({});
-  await mongoose.connection.db.collection('counters').drop().catch(err => {
-    console.log('Counter collection does not exist, skipping drop.');
-  })
+  await reset('userId');
+  console.log('All users deleted and userId counter reset.');
   return result;
 });
 const updateUser = asyncWrapper(async (id, data) => {
