@@ -1,8 +1,8 @@
-import { asyncWrapper } from "../helpers/asyncWrapper.js";
-import { validateData } from "../middlewares/schemaValidator.js";
-import { Books } from "../models/books.js";
-import { Cart, validate } from "../models/cart.js";
-import { Users } from "../models/users.js";
+import {asyncWrapper} from '../helpers/asyncWrapper.js';
+import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
+import {Books} from '../models/books.js';
+import {Cart, validate} from '../models/cart.js';
+import {Users} from '../models/users.js';
 
 const getAll = asyncWrapper(async () => {
   const cart = await Cart.find({}).exec();
@@ -19,31 +19,31 @@ const create = asyncWrapper(async (data) => {
 const deleteById = asyncWrapper(async (id) => {
   validateData(validate, id);
   const cart = await Cart.findByIdAndDelete(id);
-  return "Cart deleted successfully";
+  return 'Cart deleted successfully';
 });
 
 export const addItemToCart = async (req, res) => {
-  const { error } = validate(req.body);
+  const {error} = validate(req.body);
   if (error) {
-    return res.status(400).json({ message: error.details[0].message });
+    return res.status(400).json({message: error.details[0].message});
   }
 
   const user = await Users.findById(req.body.userId);
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.status(404).json({message: 'User not found'});
   }
 
   const book = await Books.findById(req.body.bookId);
   if (!book) {
-    return res.status(404).json({ message: "Book not found" });
+    return res.status(404).json({message: 'Book not found'});
   }
 
-  let cart = await Cart.findOne({ userId: req.body.userId });
+  let cart = await Cart.findOne({userId: req.body.userId});
   if (!cart) {
     cart = new Cart({
       userId: req.body.userId,
       items: [],
-      total_price: 0,
+      total_price: 0
     });
   }
 
@@ -58,7 +58,7 @@ export const addItemToCart = async (req, res) => {
     cart.items.push({
       bookId: req.body.bookId,
       quantity: req.body.quantity,
-      price: req.body.price,
+      price: req.body.price
     });
   }
 
@@ -68,15 +68,15 @@ export const addItemToCart = async (req, res) => {
   );
 
   await cart.save();
-  res.status(200).json({ status: "success", data: { cart } });
+  res.status(200).json({status: 'success', data: {cart}});
 };
 
 export const removeItemFromCart = async (req, res) => {
-  const { userId, bookId } = req.body;
+  const {userId, bookId} = req.body;
 
-  const cart = await Cart.findOne({ userId });
+  const cart = await Cart.findOne({userId});
   if (!cart) {
-    return res.status(404).json({ message: "Cart not found" });
+    return res.status(404).json({message: 'Cart not found'});
   }
 
   const itemIndex = cart.items.findIndex(
@@ -90,21 +90,43 @@ export const removeItemFromCart = async (req, res) => {
       0
     );
     await cart.save();
-    return res.status(200).json({ status: "success", data: { cart } });
+    return res.status(200).json({status: 'success', data: {cart}});
   } else {
-    return res.status(404).json({ message: "Item not found in cart" });
+    return res.status(404).json({message: 'Item not found in cart'});
   }
 };
 
 export const showCartItems = async (req, res) => {
-  const { userId } = req.params;
+  const {userId} = req.params;
 
-  const cart = await Cart.findOne({ userId }).populate("items.bookId");
+  const cart = await Cart.findOne({userId}).populate('items.bookId');
   if (!cart) {
-    return res.status(404).json({ message: "Cart not found" });
+    return res.status(404).json({message: 'Cart not found'});
   }
 
-  res.status(200).json({ status: "success", data: { cart } });
+  res.status(200).json({status: 'success', data: {cart}});
 };
+const updateById = asyncWrapper(async (id, data) => {
+  const fieldsToUpdate = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (
+      value !== undefined
+      && value !== null
+      && value !== ''
 
-export { create, deleteById, getAll };
+    ) {
+      fieldsToUpdate[key] = value;
+    }
+  }
+  validatePartialData(validate, fieldsToUpdate);
+  console.log(fieldsToUpdate);
+  console.log(id);
+  const updatedcart = await Cart.findOneAndUpdate(
+    {cartId: id},
+    fieldsToUpdate,
+    {new: true}
+  );
+  return updatedcart;
+});
+
+export {create, deleteById, getAll, updateById};
