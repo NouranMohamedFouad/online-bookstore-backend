@@ -38,7 +38,7 @@ const cartSchema = new mongoose.Schema({
     required: [true, 'Cart items are required'],
     validate: {
       validator(value) {
-        return value.length > 0;
+        return value.length >= 0;
       },
       message: 'Cart must contain at least one item'
     }

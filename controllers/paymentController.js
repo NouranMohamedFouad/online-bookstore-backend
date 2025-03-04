@@ -1,6 +1,6 @@
-import { asyncWrapper } from "../helpers/asyncWrapper.js";
-import { validateData } from "../middlewares/schemaValidator.js";
-import { Payment, validate } from "../models/payment.js";
+import {asyncWrapper} from '../helpers/asyncWrapper.js';
+import {validateData} from '../middlewares/schemaValidator.js';
+import {Payment, validate} from '../models/payment.js';
 
 const getAll = asyncWrapper(async () => {
   const payment = await Payment.find({}).exec();
@@ -13,10 +13,10 @@ const create = asyncWrapper(async (data) => {
   return payment;
 });
 
-//delete payment by id
+// delete payment by id
 const deleteById = asyncWrapper(async (id) => {
   const payment = await Payment.findByIdAndDelete(id);
-  return "Payment deleted successfully";
+  return `Payment deleted successfully${payment}`;
 });
 
-export { getAll, create, deleteById };
+export {create, deleteById, getAll};

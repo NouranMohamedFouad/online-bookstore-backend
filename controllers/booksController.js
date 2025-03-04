@@ -2,11 +2,6 @@ import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {reset} from '../helpers/resetCounter.js';
 import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
-import {reset} from '../helpers/resetCounter.js';
-import {
-  validateData,
-  validatePartialData
-} from '../middlewares/schemaValidator.js';
 import {Books, validate} from '../models/books.js';
 import {Review} from '../models/review.js';
 
@@ -67,7 +62,7 @@ const updateById = asyncWrapper(async (id, data) => {
       value !== undefined
       && value !== null
       && value !== ''
-      && key != 'bookId'
+      && key !== 'bookId'
     ) {
       fieldsToUpdate[key] = value;
     }
