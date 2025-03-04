@@ -24,7 +24,7 @@ router.get('/:id', async (req, res, next) => {
 });
 router.patch('/:id', async (req, res, next) => {
   const {id} = req.params;
-  const [err, data] = await BooksController.updateById(id,req.body);
+  const [err, data] = await BooksController.updateById(id, req.body);
   if (!data) return next(new CustomError('Book Not Found', 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);

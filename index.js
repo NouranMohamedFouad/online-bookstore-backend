@@ -3,13 +3,18 @@ import process from 'node:process';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import morgan from 'morgan';
 import CustomError from './helpers/customErrors.js';
+import requestLogger from './middlewares/logging.js';
 import router from './routes/index.js';
 
 dotenv.config();
 const PORT = process.env.PORT;
 const DB = process.env.DB_CONNECTION_STRING;
 const app = express();
+app.use(requestLogger);
+
+app.use(morgan('dev'));
 
 app.use(express.json());
 

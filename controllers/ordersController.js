@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
-import {validateData} from '../middlewares/schemaValidator.js';
-import {Orders, validate} from '../models/orders.js';
-import {Books} from '../models/books.js';
-import {Users} from '../models/users.js';
 import {reset} from '../helpers/resetCounter.js';
+import {validateData} from '../middlewares/schemaValidator.js';
+import {Books} from '../models/books.js';
+import {Orders, validate} from '../models/orders.js';
+import {Users} from '../models/users.js';
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
@@ -17,27 +17,26 @@ const create = asyncWrapper(async (data) => {
     if (!user) {
       throw new Error(`user with ID ${data.userId} not found`);
     }
-    let totalPrice=0;
+    let totalPrice = 0;
     for (const item of data.books) {
       const book = await Books.findById(item.bookId).session(session);
       if (!book) {
         throw new Error(`Book with ID ${item.bookId} not found`);
       }
-     
+
       if (book.stock < item.quantity) {
         throw new Error(`Not enough stock for book ID ${item.bookId}`);
       }
       book.stock -= item.quantity;
-      await book.save({ session });
+      await book.save({session});
       totalPrice += item.quantity * book.price;
     }
-    const orderData = { ...data, totalPrice };
+    const orderData = {...data, totalPrice};
 
-    const order = await Orders.create([orderData], { session });
+    const order = await Orders.create([orderData], {session});
     await session.commitTransaction();
     session.endSession();
     return order[0];
-
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -46,12 +45,12 @@ const create = asyncWrapper(async (data) => {
 });
 
 const getAll = asyncWrapper(async () => {
-  const orders = await Orders.find({}).exec();
+  const orders = await Orders.find({}, 'books totalPrice status').exec();
   return orders;
 });
 
-const getById =asyncWrapper( async (id) => {
-  const orders = await Orders.find({userId : id}).exec();
+const getById = asyncWrapper(async (id) => {
+  const orders = await Orders.find({userId: id}, 'books totalPrice status').exec();
   return orders;
 });
 
@@ -68,8 +67,8 @@ const deleteById = async () => {
 };
 export {
   create,
-  getAll,
   deleteAll,
-  getById,
-  deleteById
+  deleteById,
+  getAll,
+  getById
 };

@@ -31,12 +31,12 @@ function validateData(validator, data) {
     throw new Error(JSON.stringify(validator.errors, null, 2));
   }
   console.log(data);
-  
+
   return data;
 }
 
 function validatePartialData(validator, partialData) {
-  const dataToValidate = { ...partialData };
+  const dataToValidate = {...partialData};
   const valid = validator(dataToValidate);
 
   if (!valid) {
