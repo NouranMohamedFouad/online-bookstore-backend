@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
       minlength: [3, 'Name must be at least 3 characters'],
       maxlength: [50, 'Name cannot exceed 50 characters'],
       match: [
-        /^[A-Z]+(?:\s[A-Z]+)*$/i,
+        /^[A-Za-z]+(?:\s[A-Za-z]+)*$/,
         'Name should contain only letters and spaces'
       ],
       set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
@@ -58,11 +58,11 @@ const userSchema = new mongoose.Schema(
       },
       city: {
         type: String,
-        match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
+        match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
       },
       state: {
         type: String,
-        match: [/^[A-Z\s]+$/i, 'State should contain only letters']
+        match: [/^[A-Za-z\s]+$/, 'State should contain only letters']
       },
       postalCode: {
         type: String,
@@ -70,7 +70,7 @@ const userSchema = new mongoose.Schema(
       },
       country: {
         type: String,
-        match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
+        match: [/^[A-Za-z\s]+$/, 'Country should contain only letters']
       }
     },
     phone: {

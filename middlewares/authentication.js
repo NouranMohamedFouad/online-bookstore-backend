@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import process from 'node:process';
 import {promisify} from 'node:util';
 import jwt from 'jsonwebtoken';
 import {Users, validate} from './../models/users.js';
@@ -20,7 +20,7 @@ const createSendToken = (user, statusCode, req, res) => {
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
   };
 
-  if (isNaN(cookieOptions.expires.getTime())) {
+  if (Number.isNaN(cookieOptions.expires.getTime())) {
     throw new TypeError('option expires is invalid');
   }
 
@@ -99,12 +99,6 @@ export const protect = async (req, res, next) => {
     const currentUser = await Users.findById(decoded.id);
     if (!currentUser) {
       return res.status(401).json({message: 'User does not exist.'});
-    }
-
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return res
-        .status(401)
-        .json({message: 'User recently changed password.'});
     }
 
     if (!['customer', 'admin'].includes(currentUser.role)) {
