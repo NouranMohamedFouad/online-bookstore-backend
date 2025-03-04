@@ -1,5 +1,6 @@
 import express from 'express';
 
+import AuthRouter from './authRoutes.js';
 import BooksRouter from './booksRoute.js';
 import cartRoutes from './cartRoutes.js';
 import OrdersRouter from './ordersRoute.js';
@@ -15,5 +16,6 @@ router.use('/reviews', ReviewRouter);
 router.use('/cart', cartRoutes);
 router.use('/payment', paymentRoutes);
 router.use('/orders', OrdersRouter);
+router.use('/auth', AuthRouter);
 
 export default router;

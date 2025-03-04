@@ -1,101 +1,131 @@
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import AutoIncrementFactory from 'mongoose-sequence';
-import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
+import {
+  compileSchema,
+  convertMongooseSchema
+} from '../middlewares/schemaValidator.js';
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
 
-const userSchema = new mongoose.Schema({
-  userId: {
-    type: Number,
-    unique: true
-  },
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-    minlength: [3, 'Name must be at least 3 characters'],
-    maxlength: [50, 'Name cannot exceed 50 characters'],
-    match: [/^[A-Z]+(?:\s[A-Z]+)*$/i, 'Name should contain only letters and spaces'],
-    set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    trim: true,
-    unique: true,
-    lowercase: true,
-    match: [/^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i, 'Invalid email format']
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters long'],
-    maxlength: [32, 'Password must not exceed 32 characters'],
-    match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/, 'Password must be 8-32 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)']
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'customer'],
-    default: 'customer',
-    required: true
-  },
-  address: {
-    street: {
+const userSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: Number,
+      unique: true
+    },
+    name: {
       type: String,
+      required: [true, 'Name is required'],
       trim: true,
-      minlength: [3, 'Street must be at least 3 characters long']
+      minlength: [3, 'Name must be at least 3 characters'],
+      maxlength: [50, 'Name cannot exceed 50 characters'],
+      match: [
+        /^[A-Z]+(?:\s[A-Z]+)*$/i,
+        'Name should contain only letters and spaces'
+      ],
+      set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
     },
-    city: {
+    email: {
       type: String,
-      match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
+      required: [true, 'Email is required'],
+      trim: true,
+      unique: true,
+      lowercase: true,
+      match: [/^[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i, 'Invalid email format']
     },
-    state: {
+    password: {
       type: String,
-      match: [/^[A-Z\s]+$/i, 'State should contain only letters']
+      required: [true, 'Password is required'],
+      minlength: [8, 'Password must be at least 8 characters long'],
+      maxlength: [32, 'Password must not exceed 32 characters'],
+      match: [
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/,
+        'Password must be 8-32 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
+      ]
     },
-    postalCode: {
+    role: {
       type: String,
-      match: [/^\d{4,6}$/, 'Postal Code must be 4 to 6 digits']
+      enum: ['admin', 'customer'],
+      default: 'customer',
+      required: true
     },
-    country: {
+    address: {
+      street: {
+        type: String,
+        trim: true,
+        minlength: [3, 'Street must be at least 3 characters long']
+      },
+      city: {
+        type: String,
+        match: [/^[A-Z\s]+$/i, 'City should contain only letters and spaces']
+      },
+      state: {
+        type: String,
+        match: [/^[A-Z\s]+$/i, 'State should contain only letters']
+      },
+      postalCode: {
+        type: String,
+        match: [/^\d{4,6}$/, 'Postal Code must be 4 to 6 digits']
+      },
+      country: {
+        type: String,
+        match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
+      }
+    },
+    phone: {
       type: String,
-      match: [/^[A-Z\s]+$/i, 'Country should contain only letters']
+      required: [true, 'Phone number is required'],
+      match: [/^\+?\d{7,15}$/, 'Invalid phone number format'],
+      trim: true
+    },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please confirm your password'],
+      validate: {
+        validator(el) {
+          return el === this.password;
+        },
+        message: 'Passwords are not the same'
+      }
     }
   },
-  phone: {
-    type: String,
-    required: [true, 'Phone number is required'],
-    match: [/^\+?\d{7,15}$/, 'Invalid phone number format'],
-    trim: true
-  }
-}, {timestamps: true});
+  {timestamps: true}
+);
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
 
-userSchema.pre('findOneAndUpdate', async function (next) {
-  if (this._update.password) {
-    const salt = await bcrypt.genSalt(10);
-    this._update.password = await bcrypt.hash(this._update.password, salt);
-  }
+  this.password = await bcrypt.hash(this.password, 12);
+
+  this.passwordConfirm = undefined;
   next();
 });
 
-userSchema.set('toJSON', {
-  transform: (doc, {__v, password, ...rest}, options) => rest
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
 });
 
-userSchema.methods.comparePasswords = function (password) {
-  return bcrypt.compareSync(password, this.password);
+userSchema.pre(/^find/, function (next) {
+  this.find({active: {$ne: false}});
+  next();
+});
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 userSchema.plugin(AutoIncrement, {inc_field: 'userId', start_seq: 1});
