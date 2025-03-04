@@ -1,9 +1,10 @@
 import process from 'node:process';
-// import cors from 'cors';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
+import multer from 'multer';
 import CustomError from './helpers/customErrors.js';
 import requestLogger from './middlewares/logging.js';
 import router from './routes/index.js';
@@ -18,6 +19,9 @@ app.use(morgan('dev'));
 
 app.use(express.json());
 
+// Enable CORS for all routes
+app.use(cors());
+
 app.use(router);
 
 app.use((err, req, res, next) => {
@@ -26,6 +30,17 @@ app.use((err, req, res, next) => {
   }
   res.status(500).json({message: 'Internal Server Error'});
 });
+
+// Enable CORS
+app.use(
+  cors({
+    origin: 'http://localhost:5500'
+  })
+);
+
+app.use('/uploads', express.static('uploads'));
+
+app.options('*', cors());
 
 // create test route
 app.get('/', (req, res) => {

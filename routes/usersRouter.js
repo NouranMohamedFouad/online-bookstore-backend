@@ -46,10 +46,4 @@ router.delete('/:id', async (req, res, next) => {
   if (!deletedUser) return next(new CustomError('User not found', 404));
   res.json({message: 'User deleted successfully', user: deletedUser});
 });
-// router.post('/login', async (req, res, next) => {
-//   const [err, data] = await asyncWrapper(UsersController.login(req.body));
-//   if (!err) return res.json({token: data});
-
-//   next(err);
-// });
 export default router;
