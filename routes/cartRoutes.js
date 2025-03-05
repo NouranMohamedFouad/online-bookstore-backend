@@ -1,4 +1,5 @@
 import express from 'express';
+
 // import {
 //   removeItemFromCart,
 //   showCartItems
@@ -15,8 +16,10 @@ router.get('/', protect, restrictTo('customer'), async (req, res, next) => {
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
+
 router.post('/', protect, async (req, res, next) => {
   const [err, data] = await CartController.create(req.body, req.user);
+
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
