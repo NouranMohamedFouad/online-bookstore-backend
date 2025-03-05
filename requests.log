@@ -5383,3 +5383,5 @@
 {"level":"info","message":"PUT /reviews/19 - 2025-03-05T10:50:04.934Z"}
 {"level":"info","message":"PUT /reviews/19 - 2025-03-05T11:01:26.510Z"}
 {"level":"info","message":"GET /reviews - 2025-03-05T11:01:37.825Z"}
+{"level":"info","message":"GET /reviews - 2025-03-05T11:11:58.776Z"}
+{"level":"info","message":"GET /reviews/4 - 2025-03-05T11:12:09.680Z"}
