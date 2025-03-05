@@ -5329,3 +5329,7 @@
 >>>>>>> a38171c6280f053ed540d4b0fa4a79225b0ce8b0
 {"level":"info","message":"GET /books - 2025-03-05T01:10:24.362Z"}
 {"level":"info","message":"GET /books/1 - 2025-03-05T01:10:33.531Z"}
+{"level":"info","message":"POST /auth/signup - 2025-03-05T01:17:35.859Z"}
+{"level":"info","message":"POST /auth/signup - 2025-03-05T01:18:12.450Z"}
+{"level":"info","message":"POST /auth/signup - 2025-03-05T01:20:53.623Z"}
+{"level":"info","message":"POST /auth/signup - 2025-03-05T01:21:04.065Z"}
