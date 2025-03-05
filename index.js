@@ -2,6 +2,7 @@ import process from 'node:process';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import multer from 'multer';
@@ -21,10 +22,31 @@ app.use(express.json());
 
 // Enable CORS for all routes
 app.use(cors());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: (req, _res) => {
+    return req.user ? 200 : 100;
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 429,
+    error: 'Too many requests, please slow down.'
+  },
+  skip: (req, _res) => {
+    const whitelistedIPs = ['123.45.67.89'];
+    return whitelistedIPs.includes(req.ip);
+  },
+  handler: (req, res, _next, options) => {
+    console.warn(`Rate limit exceeded for IP: ${req.ip}`);
+    res.status(options.statusCode).json(options.message);
+  }
+});
 
+app.use(limiter);
 app.use(router);
 
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   if (err instanceof CustomError) {
     return res.status(err.status).json({message: err.message});
   }
@@ -43,7 +65,7 @@ app.use('/uploads', express.static('uploads'));
 app.options('*', cors());
 
 // create test route
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.send('Hello World!');
 });
 
