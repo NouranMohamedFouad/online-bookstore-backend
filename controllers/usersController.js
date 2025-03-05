@@ -1,4 +1,5 @@
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
+import CustomError from '../helpers/customErrors.js';
 import {reset} from '../helpers/resetCounter.js';
 import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
 import {Users, validate} from '../models/users.js';
@@ -13,7 +14,10 @@ const getAll = asyncWrapper(async () => {
   return users;
 });
 
-const getById = asyncWrapper(async (id) => {
+const getById = asyncWrapper(async (id, user) => {
+  if (Number(id) !== user.userId) {
+    throw new CustomError('You can only view your own profile', 403);
+  }
   const users = await Users.findOne({userId: id}, 'name email role phone').exec();
   return users;
 });
