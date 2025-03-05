@@ -5466,3 +5466,19 @@
 =======
 >>>>>>> f3bc8cb1896b0fee3c5e25fd3a5f949ba7b1bc8c
 >>>>>>> 698756dae59fe11d703ed7508311a9db0d89a8e9
+{"level":"info","message":"GET /reviews/4 - 2025-03-05T16:05:39.289Z"}
+{"level":"info","message":"GET /reviews/4 - 2025-03-05T16:05:41.638Z"}
+{"level":"info","message":"GET /reviews/4 - 2025-03-05T16:05:44.244Z"}
+{"level":"info","message":"POST /reviews - 2025-03-05T16:05:54.210Z"}
+{"level":"info","message":"POST /reviews - 2025-03-05T16:05:59.839Z"}
+{"level":"info","message":"POST /review - 2025-03-05T16:06:56.445Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:07:03.875Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:07:08.166Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:04.108Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:05.273Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:06.316Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:07.281Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:08.312Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:09.316Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:11.664Z"}
+{"level":"info","message":"GET /review - 2025-03-05T16:15:12.955Z"}
