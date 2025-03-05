@@ -34,7 +34,7 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   const {id} = req.params;
   const [err, data] = await ReviewController.deleteById(id);
-  
+
   if (!data) return next(new CustomError('Review Not Found', 404));
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);

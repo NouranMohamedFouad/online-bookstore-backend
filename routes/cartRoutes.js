@@ -11,12 +11,24 @@ import {protect, restrictTo} from '../middlewares/authentication.js';
 
 const router = express.Router();
 
-router.get('/', protect, restrictTo('customer'), async (req, res, next) => {
-  const [err, data] = await CartController.getAll();
+router.get('/', protect, restrictTo('admin'), async (req, res, next) => {
+  const [err, data] = await CartController.getAll(req.user);
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
 
+router.patch('/', protect, async (req, res, next) => {
+  try {
+    const [err, data] = await CartController.updateQuantity(req.body, req.user);
+    if (err) return next(new CustomError(err.message, 500));
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    next(new CustomError(error.message, 500));
+  }
+});
 router.post('/', protect, async (req, res, next) => {
   const [err, data] = await CartController.create(req.body, req.user);
 
