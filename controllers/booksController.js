@@ -11,7 +11,9 @@ const create = asyncWrapper(async (data) => {
   return book;
 });
 
-const getAll = asyncWrapper(async () => {
+const getAll = asyncWrapper(async (page = 1, pageSize = 10) => {
+  const skip = (page - 1) * pageSize;
+
   const booksWithAverageRating = await Books.aggregate([
     {
       $lookup: {
@@ -35,12 +37,17 @@ const getAll = asyncWrapper(async () => {
         createdAt: 0,
         updatedAt: 0
       }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: pageSize
     }
   ]);
 
   return booksWithAverageRating;
 });
-
 const getById = asyncWrapper(async (id) => {
   const book = await Books.findOne({bookId: id}).exec();
 
@@ -64,10 +71,30 @@ const getById = asyncWrapper(async (id) => {
 });
 
 const deleteAll = asyncWrapper(async () => {
-  const result = await Books.deleteMany({});
-  await reset('bookId');
-  console.log('All books deleted and bookID counter reset.');
-  return result;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const deleteBooksResult = await Books.deleteMany({}).session(session);
+
+    const deleteReviewsResult = await Review.deleteMany({}).session(session);
+
+    await reset('bookId');
+
+    await session.commitTransaction();
+    session.endSession();
+
+    console.log('All books and reviews deleted, and bookId counter reset.');
+    return {
+      booksDeleted: deleteBooksResult.deletedCount,
+      reviewsDeleted: deleteReviewsResult.deletedCount
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Transaction aborted due to error:', error.message);
+    throw error;
+  }
 });
 
 const deleteById = asyncWrapper(async (id) => {
