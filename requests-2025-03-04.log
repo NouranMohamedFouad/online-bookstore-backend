@@ -1,2 +1,0 @@
-2025-03-04T18:09:51.042Z [info]: Incoming request {"method":"GET","url":"/cart","headers":{"content-type":"application/json","user-agent":"PostmanRuntime/7.42.0","accept":"*/*","cache-control":"no-cache","postman-token":"f504f2ec-f828-4e11-bfcb-7a952a735980","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"212"},"query":{}}
-2025-03-04T18:09:51.095Z [info]: Request completed {"status":401,"duration":"53ms"}
