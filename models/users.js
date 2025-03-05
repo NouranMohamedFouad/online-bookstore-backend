@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
       minlength: [3, 'Name must be at least 3 characters'],
       maxlength: [50, 'Name cannot exceed 50 characters'],
       match: [
+        // eslint-disable-next-line regexp/use-ignore-case
         /^[A-Za-z]+(?:\s[A-Za-z]+)*$/,
         'Name should contain only letters and spaces'
       ],
@@ -58,10 +59,12 @@ const userSchema = new mongoose.Schema(
       },
       city: {
         type: String,
+        // eslint-disable-next-line regexp/use-ignore-case
         match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
       },
       state: {
         type: String,
+        // eslint-disable-next-line regexp/use-ignore-case
         match: [/^[A-Za-z\s]+$/, 'State should contain only letters']
       },
       postalCode: {
@@ -70,6 +73,7 @@ const userSchema = new mongoose.Schema(
       },
       country: {
         type: String,
+        // eslint-disable-next-line regexp/use-ignore-case
         match: [/^[A-Za-z\s]+$/, 'Country should contain only letters']
       }
     },

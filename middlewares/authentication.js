@@ -1,6 +1,7 @@
 import process from 'node:process';
 import {promisify} from 'node:util';
 import jwt from 'jsonwebtoken';
+import {validateData} from '../middlewares/schemaValidator.js';
 import {Users, validate} from './../models/users.js';
 
 const signToken = (id) => {
@@ -38,22 +39,26 @@ const createSendToken = (user, statusCode, req, res) => {
 };
 
 export const signup = async (req, res) => {
-  const {error} = validate(req.body);
-  if (error) {
-    return res.status(400).json({message: error.details[0].message});
+  try {
+    const {error} = validateData(validate, req.body);
+    if (error) {
+      return res.status(400).json({message: error.message});
+    }
+
+    const newUser = await Users.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+      role: req.body.role || 'customer',
+      address: req.body.address,
+      phone: req.body.phone
+    });
+
+    createSendToken(newUser, 201, req, res);
+  } catch (err) {
+    res.status(500).json({message: 'Something went wrong', error: err.message});
   }
-
-  const newUser = await Users.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    role: req.body.role || 'customer',
-    address: req.body.address,
-    phone: req.body.phone
-  });
-
-  createSendToken(newUser, 201, req, res);
 };
 
 export const login = async (req, res) => {

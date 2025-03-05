@@ -1,30 +1,68 @@
 import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {reset} from '../helpers/resetCounter.js';
-import {
-  validateData,
-  validatePartialData
-} from '../middlewares/schemaValidator.js';
+import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
 import {Books, validate} from '../models/books.js';
 import {Review} from '../models/review.js';
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
-  console.log(data);
-
   const book = await Books.create(data);
   return book;
 });
 
 const getAll = asyncWrapper(async () => {
-  const books = await Books.find({}).exec();
-  return books;
+  const booksWithAverageRating = await Books.aggregate([
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: 'bookId',
+        foreignField: 'bookId',
+        as: 'reviews'
+      }
+    },
+    {
+      $addFields: {
+        average_rating: {
+          $ifNull: [{$avg: '$reviews.rating'}, 0]
+        }
+      }
+    },
+    {
+      $project: {
+        reviews: 0,
+        __v: 0,
+        createdAt: 0,
+        updatedAt: 0
+      }
+    }
+  ]);
+
+  return booksWithAverageRating;
 });
 
 const getById = asyncWrapper(async (id) => {
-  const books = await Books.findOne({bookId: id}).exec();
-  return books;
+  const book = await Books.findOne({bookId: id}).exec();
+
+  if (!book) {
+    return null;
+  }
+
+  const reviews = await Review.find({bookId: id}).exec();
+
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+
+  const {__v, createdAt, updatedAt, ...bookData} = book.toObject();
+
+  const bookWithAverageRating = {
+    ...bookData,
+    average_rating: averageRating
+  };
+
+  return bookWithAverageRating;
 });
+
 const deleteAll = asyncWrapper(async () => {
   const result = await Books.deleteMany({});
   await reset('bookId');
@@ -45,7 +83,7 @@ const deleteById = asyncWrapper(async (id) => {
       throw new Error('Book not found');
     }
 
-    await Review.deleteMany({bookId: id}).session(session);
+    await Review.deleteMany({bookId: deleteBook._id}).session(session);
 
     await session.commitTransaction();
     session.endSession();
@@ -65,7 +103,7 @@ const updateById = asyncWrapper(async (id, data) => {
       value !== undefined
       && value !== null
       && value !== ''
-      && key != 'bookId'
+      && key !== 'bookId'
     ) {
       fieldsToUpdate[key] = value;
     }

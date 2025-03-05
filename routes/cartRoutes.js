@@ -1,9 +1,9 @@
 import express from 'express';
-import {
-  addItemToCart,
-  removeItemFromCart,
-  showCartItems
-} from '../controllers/cartController.js';
+
+// import {
+//   removeItemFromCart,
+//   showCartItems
+// } from '../controllers/cartController.js';
 import {CartController} from '../controllers/index.js';
 import CustomError from '../helpers/customErrors.js';
 
@@ -16,28 +16,12 @@ router.get('/', protect, restrictTo('customer'), async (req, res, next) => {
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-router.post('/', async (req, res, next) => {
-  const [err, data] = await CartController.create(req.body);
+
+router.post('/', protect, async (req, res, next) => {
+  const [err, data] = await CartController.create(req.body, req.user);
+
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
-});
-router.patch('/:id', async (req, res, next) => {
-  try {
-    const {id} = req.params;
-    if (req.file) req.body.image = req.file.filename;
-
-    const [err, data] = await CartController.updateById(id, req.body);
-    if (!data) return next(new CustomError('Cart Not Found', 404));
-    if (err) return next(new CustomError(err.message, 500));
-
-    res.json({
-      success: true,
-      data
-
-    });
-  } catch (error) {
-    next(new CustomError(error.message, 500));
-  }
 });
 
 router.delete('/:id', async (req, res, next) => {
@@ -46,8 +30,8 @@ router.delete('/:id', async (req, res, next) => {
   res.json(data);
 });
 
-router.post('/add', addItemToCart);
-router.delete('/remove', removeItemFromCart);
-router.get('/:userId', showCartItems);
+// router.post('/add', addItemToCart);
+// router.delete('/remove', removeItemFromCart);
+// router.get('/:userId', showCartItems);
 
 export default router;

@@ -28,55 +28,82 @@
         height: auto;
         border-radius: 5px;
       }
+      .loading {
+        font-size: 18px;
+        color: #555;
+      }
+      .error {
+        font-size: 18px;
+        color: red;
+      }
     </style>
   </head>
   <body>
     <h1>Books List</h1>
+    <div id="loading" class="loading">Loading books...</div>
+    <div id="error" class="error" style="display: none;"></div>
     <div id="books-list" class="book-container"></div>
 
     <script>
+      // Function to fetch books from the server
       async function fetchBooks() {
+        const loadingElement = document.getElementById("loading");
+        const errorElement = document.getElementById("error");
+        const booksContainer = document.getElementById("books-list");
+
         try {
-          const response = await fetch("http://localhost:3000/books", {
-            mode: "cors", // Ensure CORS mode is enabled
-          });
+          console.log("Fetching books...");
+          const response = await fetch("http://localhost:3000/books");
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch books: ${response.statusText}`);
+          }
+
           const books = await response.json();
           console.log("Books:", books);
-          const booksContainer = document.getElementById("books-list");
+
+          // Clear the loading message
+          loadingElement.style.display = "none";
+
+          // Clear the container before adding new content
           booksContainer.innerHTML = "";
 
+          // Loop through the books and create cards
           books.forEach((book) => {
-            console.log("Book:", book);
             const bookCard = document.createElement("div");
             bookCard.classList.add("book-card");
 
+            const imageUrl = book.image || ""; // Fallback for missing image
+            const imageHtml = imageUrl
+              ? `<img src="${imageUrl}" alt="${book.title}" class="book-image" />`
+              : "<p>No image available</p>";
+
             bookCard.innerHTML = `
-                        <h3>${book._doc.title}</h3>
-                        <p><strong>Author:</strong> ${book.author}</p>
-                        <p><strong>Category:</strong> ${book.category}</p>
-                        <p><strong>Price:</strong> $${book.price}</p>
-                        <p><strong>Stock:</strong> ${
-                          book.stock > 0 ? "Available" : "Out of Stock"
-                        }</p>
-                        <p><strong>Rating:</strong> ⭐ ${
-                          book.average_rating
-                        }</p>
-                        ${
-                          book._doc.image
-                            ? `<img src="${book.imageUrl}" alt="${book._doc.title}" class="book-image" />`
-                            : ""
-                        }
-                    `;
+              <h3>${book.title || "No Title"}</h3>
+              <p><strong>Author:</strong> ${book.author || "Unknown"}</p>
+              <p><strong>Category:</strong> ${book.category || "Uncategorized"}</p>
+              <p><strong>Price:</strong> $${book.price || "0.00"}</p>
+              <p><strong>Stock:</strong> ${
+                book.stock > 0 ? "Available" : "Out of Stock"
+              }</p>
+              <p><strong>Rating:</strong> ⭐ ${book.average_rating || "0.0"}</p>
+              ${imageHtml}
+            `;
 
             booksContainer.appendChild(bookCard);
           });
         } catch (error) {
           console.error("Error fetching books:", error);
+
+          // Hide loading message and show error message
+          loadingElement.style.display = "none";
+          errorElement.textContent = "Failed to load books. Please try again later.";
+          errorElement.style.display = "block";
         }
       }
 
-      // Call the function when the page loads
-      fetchBooks();
+      // Fetch books when the page loads
+      document.addEventListener("DOMContentLoaded", fetchBooks);
     </script>
   </body>
 </html>

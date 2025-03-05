@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
-import AutoIncrementFactory from 'mongoose-sequence';              
+import AutoIncrementFactory from 'mongoose-sequence';
 import {compileSchema, convertMongooseSchema} from '../middlewares/schemaValidator.js';
 
 const AutoIncrement = AutoIncrementFactory(mongoose);
-  
 
 const orderSchema = new mongoose.Schema({
   orderId: {
@@ -11,14 +10,14 @@ const orderSchema = new mongoose.Schema({
     unique: true
   },
   userId: {
-    type:mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
   books: [
     {
       bookId: {
-        type: mongoose.Schema.Types.ObjectId, 
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Books',
         required: true
       },
@@ -26,7 +25,7 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 1,
-        default: 1 
+        default: 1
       }
     }
   ],
