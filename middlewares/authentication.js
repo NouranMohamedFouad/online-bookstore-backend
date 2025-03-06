@@ -1,12 +1,12 @@
-import process from 'node:process';
-import {promisify} from 'node:util';
-import jwt from 'jsonwebtoken';
-import {validateData} from '../middlewares/schemaValidator.js';
-import {Users, validate} from './../models/users.js';
+import process from "node:process";
+import { promisify } from "node:util";
+import jwt from "jsonwebtoken";
+import { validateData } from "../middlewares/schemaValidator.js";
+import { Users, validate } from "./../models/users.js";
 
 const signToken = (id) => {
-  return jwt.sign({id}, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
@@ -18,105 +18,113 @@ const createSendToken = (user, statusCode, req, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   };
 
   if (Number.isNaN(cookieOptions.expires.getTime())) {
-    throw new TypeError('option expires is invalid');
+    throw new TypeError("option expires is invalid");
   }
 
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie("jwt", token, cookieOptions);
 
   user.password = undefined;
 
   res.status(statusCode).json({
-    status: 'success',
+    status: "success",
     token,
     data: {
-      user
-    }
+      user,
+    },
   });
 };
 
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
   try {
-    const {error} = validateData(validate, req.body);
-    if (error) {
-      return res.status(400).json({message: error.message});
-    }
+    validateData(validate, req.body);
 
     const newUser = await Users.create({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
-      role: req.body.role || 'customer',
+      role: req.body.role || "customer",
       address: req.body.address,
-      phone: req.body.phone
+      phone: req.body.phone,
     });
 
     createSendToken(newUser, 201, req, res);
   } catch (err) {
-    res.status(500).json({message: 'Something went wrong', error: err.message});
+    console.error("Signup error:", err.message);
+    if (err.code === 11000) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Duplicate field value",
+        details: err.keyValue,
+      });
+    }
+    if (err.name === "Error") {
+      return res.status(400).json({ message: err.message });
+    }
+    next(err);
   }
 };
 
 export const login = async (req, res) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res
       .status(400)
-      .json({message: 'Please provide email and password!'});
+      .json({ message: "Please provide email and password!" });
   }
 
-  const user = await Users.findOne({email}).select('+password');
+  const user = await Users.findOne({ email }).select("+password");
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return res.status(401).json({message: 'Incorrect email or password'});
+    return res.status(401).json({ message: "Incorrect email or password" });
   }
 
   createSendToken(user, 200, req, res);
 };
 
 export const logout = (req, res) => {
-  res.cookie('jwt', 'loggedout', {
+  res.cookie("jwt", "loggedout", {
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+    httpOnly: true,
   });
-  res.status(200).json({status: 'success'});
+  res.status(200).json({ status: "success" });
 };
 
 export const protect = async (req, res, next) => {
   let token;
   if (
-    req.headers.authorization
-    && req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(' ')[1];
+    token = req.headers.authorization.split(" ")[1];
   }
 
   if (!token) {
-    return res.status(401).json({message: 'You are not logged in!'});
+    return res.status(401).json({ message: "You are not logged in!" });
   }
 
   try {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     const currentUser = await Users.findById(decoded.id);
     if (!currentUser) {
-      return res.status(401).json({message: 'User does not exist.'});
+      return res.status(401).json({ message: "User does not exist." });
     }
 
-    if (!['customer', 'admin'].includes(currentUser.role)) {
+    if (!["customer", "admin"].includes(currentUser.role)) {
       return res
         .status(403)
-        .json({message: 'No permission to perform this action'});
+        .json({ message: "No permission to perform this action" });
     }
 
     req.user = currentUser;
     res.locals.user = currentUser;
     next();
   } catch (err) {
-    return res.status(401).json({message: 'Invalid token. Please log in!'});
+    return res.status(401).json({ message: "Invalid token. Please log in!" });
   }
 };
 
@@ -125,7 +133,7 @@ export const restrictTo = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res
         .status(403)
-        .json({message: 'No permission to perform this action'});
+        .json({ message: "No permission to perform this action" });
     }
     next();
   };
