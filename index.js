@@ -27,7 +27,7 @@ app.use(cors());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (req, _res) => (req.user ? 10 : 5),
+  max: (req, _res) => (req.user ? 200 : 100),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
