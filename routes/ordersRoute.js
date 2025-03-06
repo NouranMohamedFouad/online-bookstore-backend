@@ -33,7 +33,17 @@ router.delete('/', async (req, res, next) => {
     const data = await OrdersController.deleteAll();
     res.json(data);
   } catch (err) {
-    next(new CustomError(err.message, 500));
+    next(new CustomError(err.message, 422));
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const {id} = req.params;
+    const data = await OrdersController.deleteById(id);
+    res.json(data);
+  } catch (err) {
+    next(new CustomError(err.message, 422));
   }
 });
 
