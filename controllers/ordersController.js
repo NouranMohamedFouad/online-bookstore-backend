@@ -31,15 +31,16 @@ const create = asyncWrapper(async (data) => {
       await book.save({session});
       totalPrice += item.quantity * book.price;
       updatedBooks.push({
-        bookId: book._id,
+        bookId: String(book._id),
         quantity: item.quantity
       });
     }
     const orderData = {
       ...data,
-      userId: user._id,
+      userId: user._id.toString(),
       books: updatedBooks,
-      totalPrice
+      totalPrice,
+      status: String(data.status)
     };
 
     validateData(validate, orderData);
@@ -72,6 +73,7 @@ const deleteAll = async () => {
   console.log('All orders deleted and orderId counter reset.');
   return result;
 };
+
 const deleteById = async (orderId) => {
   const result = await Orders.findOneAndDelete({orderId});
   if (!result) {

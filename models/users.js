@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import AutoIncrementFactory from 'mongoose-sequence';
+import CustomError from '../helpers/customErrors.js';
+
 import {
   compileSchema,
   convertMongooseSchema
@@ -25,7 +27,7 @@ const userSchema = new mongoose.Schema(
         /^[A-Za-z]+(?:\s[A-Za-z]+)*$/,
         'Name should contain only letters and spaces'
       ],
-      set: (value) => value.replace(/\b\w/g, (char) => char.toUpperCase())
+      set: (value) => value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())
     },
     email: {
       type: String,
@@ -92,7 +94,10 @@ const userSchema = new mongoose.Schema(
     passwordResetToken: String,
     passwordConfirm: {
       type: String,
-      required: [true, 'Please confirm your password'],
+      required() {
+        return this.isNew || this.isModified('password');
+      },
+      select: false,
       validate: {
         validator(el) {
           return el === this.password;
@@ -105,18 +110,47 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 12);
+    this.passwordConfirm = undefined;
+  }
 
-  this.password = await bcrypt.hash(this.password, 12);
+  if (!this.isNew && this.isModified('password')) {
+    this.passwordChangedAt = Date.now() - 1000;
+  }
 
-  this.passwordConfirm = undefined;
+  const User = mongoose.model('Users');
+  if (this.isNew && this.role === 'admin') {
+    const adminCount = await User.countDocuments({role: 'admin'});
+    console.log(`Admin count: ${adminCount}`);
+    if (adminCount >= 5) {
+      console.log('Admin limit reached, throwing error');
+      return next(new CustomError('Cannot create more than 5 admins', 403));
+    }
+  }
+
   next();
 });
 
-userSchema.pre('save', function (next) {
-  if (!this.isModified('password') || this.isNew) return next();
+userSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate();
 
-  this.passwordChangedAt = Date.now() - 1000;
+  if (update.password) {
+    update.password = await bcrypt.hash(update.password, 12);
+    update.passwordChangedAt = Date.now() - 1000;
+  }
+
+  const role = update.role || (update.$set && update.$set.role);
+  if (role === 'admin') {
+    const User = mongoose.model('Users');
+    const adminCount = await User.countDocuments({role: 'admin'});
+
+    const existingUser = await User.findOne(this.getQuery());
+    const wasAdmin = existingUser?.role === 'admin';
+    if (!wasAdmin && adminCount >= 5) {
+      throw new CustomError('Cannot update to admin. Max 5 admins allowed.', 403);
+    }
+  }
   next();
 });
 

@@ -30,15 +30,47 @@ const deleteAll = asyncWrapper(async () => {
 });
 
 const update = asyncWrapper(async (id, data) => {
+  if (data.password) {
+    if (!data.passwordConfirm) {
+      throw new CustomError('Please confirm your password', 400);
+    }
+    if (data.password !== data.passwordConfirm) {
+      throw new CustomError('Passwords do not match', 400);
+    }
+  }
+
+  delete data.passwordConfirm;
+
   const fieldsToUpdate = {};
   for (const [key, value] of Object.entries(data)) {
     if (value !== undefined && value !== null && value !== '') {
       fieldsToUpdate[key] = value;
     }
   }
+
   validatePartialData(validate, fieldsToUpdate);
-  const updatedReview = await Users.findOneAndUpdate({userId: id}, fieldsToUpdate, {new: true});
-  return updatedReview;
+
+  let updatedUser = await Users.findOne({userId: id});
+  if (!updatedUser) {
+    throw new CustomError('User not found', 404);
+  }
+
+  if (fieldsToUpdate.password) {
+    try {
+      updatedUser.password = fieldsToUpdate.password;
+      await updatedUser.save();
+    } catch (error) {
+      throw new CustomError(error.message, 400);
+    }
+  } else {
+    updatedUser = await Users.findOneAndUpdate(
+      {userId: id},
+      fieldsToUpdate,
+      {new: true, runValidators: true}
+    );
+  }
+
+  return updatedUser;
 });
 
 const deleteById = asyncWrapper(async (userId) => {
