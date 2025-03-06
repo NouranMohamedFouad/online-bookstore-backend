@@ -26,6 +26,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
 
+// Connect to reddis client
 const client = createClient({
   username: "default",
   password: process.env.REDIS_PASSWORD,
