@@ -27,8 +27,16 @@ function compileSchema(jsonSchema) {
 
 function validateData(validator, data) {
   const valid = validator(data);
+  // if (!valid) {
+  //   throw new Error(JSON.stringify(validator.errors, null, 2));
+  // }
   if (!valid) {
-    throw new Error(JSON.stringify(validator.errors, null, 2));
+    const firstError = validator.errors[0];
+    const errorMessage = firstError.message;
+
+    const validationError = new Error(errorMessage);
+    validationError.statusCode = 400;
+    throw validationError;
   }
   console.log(data);
 
