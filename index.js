@@ -38,10 +38,9 @@ const client = createClient({
 
 client.on("error", (err) => console.log("Redis Client Error", err));
 
-// Rate Limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (req, _res) => (req.user ? 10 : 5),
+  windowMs: 60 * 1000, // 1 minute
+  max: (req, _res) => (req.user ? 100 : 50),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
