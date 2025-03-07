@@ -64,19 +64,17 @@ const userSchema = new mongoose.Schema(
         // eslint-disable-next-line regexp/use-ignore-case
         match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
       },
-      state: {
+      BuildingNo: {
         type: String,
-        // eslint-disable-next-line regexp/use-ignore-case
-        match: [/^[A-Za-z\s]+$/, 'State should contain only letters']
+        match: [/^\d+$/, 'Building Number must contain only numbers']
       },
-      postalCode: {
+      floorNo: {
         type: String,
-        match: [/^\d{4,6}$/, 'Postal Code must be 4 to 6 digits']
+        match: [/^\d+$/, 'Floor Number must contain only numbers']
       },
-      country: {
+      flatNo: {
         type: String,
-        // eslint-disable-next-line regexp/use-ignore-case
-        match: [/^[A-Za-z\s]+$/, 'Country should contain only letters']
+        match: [/^\d+$/, 'Flat Number must contain only numbers']
       }
     },
     phone: {
