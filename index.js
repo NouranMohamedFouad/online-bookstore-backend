@@ -25,7 +25,7 @@ const server = createServer(app); // Create HTTP server for WebSocket support
 app.use(requestLogger);
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(cors());
+app.use(cors({origin: 'http://localhost:4200'}));
 
 // Connect to reddis client
 const client = createClient({

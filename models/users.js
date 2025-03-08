@@ -57,24 +57,29 @@ const userSchema = new mongoose.Schema(
       street: {
         type: String,
         trim: true,
-        minlength: [3, 'Street must be at least 3 characters long']
+        minlength: [3, 'Street must be at least 3 characters long'],
+        default: undefined
       },
       city: {
         type: String,
         // eslint-disable-next-line regexp/use-ignore-case
-        match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces']
+        match: [/^[A-Za-z\s]+$/, 'City should contain only letters and spaces'],
+        default: undefined
       },
-      BuildingNo: {
+      buildingNo: {
         type: String,
-        match: [/^\d+$/, 'Building Number must contain only numbers']
+        match: [/^\d+$/, 'Building Number must contain only numbers'],
+        default: undefined
       },
       floorNo: {
         type: String,
-        match: [/^\d+$/, 'Floor Number must contain only numbers']
+        match: [/^\d+$/, 'Floor Number must contain only numbers'],
+        default: undefined
       },
       flatNo: {
         type: String,
-        match: [/^\d+$/, 'Flat Number must contain only numbers']
+        match: [/^\d+$/, 'Flat Number must contain only numbers'],
+        default: undefined
       }
     },
     phone: {
@@ -132,15 +137,32 @@ userSchema.pre('save', async function (next) {
 
 userSchema.pre('findOneAndUpdate', async function (next) {
   const update = this.getUpdate();
+  const User = mongoose.model('Users');
+  const oldPassword = update.oldPassword;
+  delete update.oldPassword;
 
   if (update.password) {
+    if (!oldPassword) {
+      return next(new CustomError('Old password is required', 400));
+    }
+
+    const existingUser = await User.findOne(this.getQuery()).select('+password');
+
+    if (!existingUser) {
+      return next(new CustomError('User not found', 404));
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, existingUser.password);
+    if (!isMatch) {
+      return next(new CustomError('Incorrect old password', 401));
+    }
+
     update.password = await bcrypt.hash(update.password, 12);
     update.passwordChangedAt = Date.now() - 1000;
   }
 
   const role = update.role || (update.$set && update.$set.role);
   if (role === 'admin') {
-    const User = mongoose.model('Users');
     const adminCount = await User.countDocuments({role: 'admin'});
 
     const existingUser = await User.findOne(this.getQuery());
@@ -149,7 +171,15 @@ userSchema.pre('findOneAndUpdate', async function (next) {
       throw new CustomError('Cannot update to admin. Max 5 admins allowed.', 403);
     }
   }
-  next();
+  if (update.address) {
+    Object.keys(update.address).forEach((key) => {
+      if (update.address[key] === '') {
+        update.$unset = update.$unset || {};
+        update.$unset[`address.${key}`] = 1;
+      }
+    });
+    next();
+  }
 });
 
 userSchema.pre(/^find/, function (next) {
