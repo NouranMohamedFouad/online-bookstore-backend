@@ -6,10 +6,12 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
-import multer from 'multer';
+// import multer from 'multer';
+import {createClient} from 'redis';
 import {WebSocketServer} from 'ws';
 import CustomError from './helpers/customErrors.js';
 import requestLogger from './middlewares/logging.js';
+
 import router from './routes/index.js';
 
 dotenv.config();
@@ -24,10 +26,21 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors());
 
-// Rate Limiting
+// Connect to reddis client
+const client = createClient({
+  username: 'default',
+  password: process.env.REDIS_PASSWORD,
+  socket: {
+    host: 'redis-16848.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
+    port: 16848
+  }
+});
+
+client.on('error', (err) => console.log('Redis Client Error', err));
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (req, _res) => (req.user ? 10 : 5),
+  windowMs: 60 * 1000, // 1 minute
+  max: (req, _res) => (req.user ? 100 : 50),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -71,6 +84,12 @@ mongoose
   .connect(DB, {})
   .then(() => console.log('DB connection Done!'))
   .catch((err) => console.error('DB Connection Error:', err));
+
+client.connect().then(() => console.log('Connected to Redis!'));
+client.set('foo', 'bar');
+// eslint-disable-next-line antfu/no-top-level-await
+const result = await client.get('foo');
+console.log(result); // >>> bar
 
 // ------------------- WebSocket Setup -------------------
 const wss = new WebSocketServer({server});

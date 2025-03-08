@@ -34,7 +34,7 @@ router.use('/uploads', express.static(path.join(process.cwd(), uploadDir)));
 const getImageUrl = (req, filename) =>
   filename ? `${req.protocol}://${req.get('host')}/uploads/${filename}` : null;
 
-router.post('/', protect, restrictTo('admin'), upload.single('image'), async (req, res, next) => {
+router.post('/', upload.single('image'), async (req, res, next) => {
   try {
     if (!req.file) return next(new CustomError('Image is required', 400));
 

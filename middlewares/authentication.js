@@ -38,12 +38,9 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 };
 
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
   try {
-    const {error} = validateData(validate, req.body);
-    if (error) {
-      return res.status(400).json({message: error.message});
-    }
+    validateData(validate, req.body);
 
     const newUser = await Users.create({
       name: req.body.name,
@@ -57,7 +54,18 @@ export const signup = async (req, res) => {
 
     createSendToken(newUser, 201, req, res);
   } catch (err) {
-    res.status(500).json({message: 'Something went wrong', error: err.message});
+    console.error('Signup error:', err.message);
+    if (err.code === 11000) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Duplicate field value',
+        details: err.keyValue
+      });
+    }
+    if (err.name === 'Error') {
+      return res.status(400).json({message: err.message});
+    }
+    next(err);
   }
 };
 

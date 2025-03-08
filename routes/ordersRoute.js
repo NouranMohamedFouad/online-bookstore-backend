@@ -1,10 +1,11 @@
 import express from 'express';
 import {OrdersController} from '../controllers/index.js';
 import CustomError from '../helpers/customErrors.js';
+import {protect, restrictTo} from '../middlewares/authentication.js';
 
 const router = express.Router();
 
-router.post('/', async (req, res, next) => {
+router.post('/', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
   const [err, data] = await OrdersController.create(req.body);
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
@@ -14,7 +15,7 @@ router.get('/', async (req, res, next) => {
   console.log(OrdersController);
 
   const [err, data] = await OrdersController.getAll();
-  if (err) return next(new CustomError(err.message, 500));
+  if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
 router.get('/:userId', async (req, res, next) => {
@@ -28,12 +29,22 @@ router.get('/:userId', async (req, res, next) => {
   res.json(data);
 });
 
-router.delete('/', async (req, res, next) => {
+router.delete('/', protect, restrictTo('admin'), async (req, res, next) => {
   try {
     const data = await OrdersController.deleteAll();
     res.json(data);
   } catch (err) {
-    next(new CustomError(err.message, 500));
+    next(new CustomError(err.message, 422));
+  }
+});
+
+router.delete('/:id', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
+  try {
+    const {id} = req.params;
+    const data = await OrdersController.deleteById(id);
+    res.json(data);
+  } catch (err) {
+    next(new CustomError(err.message, 422));
   }
 });
 

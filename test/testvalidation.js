@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import {compileSchema, validateData} from './middlewares/schemaValidator.js';
-import {jsonSchema, Review} from './models/review.js';
+import {compileSchema, validateData} from '../middlewares/schemaValidator.js';
+import {jsonSchema, Review} from '../models/review.js';
 
 // Compile AJV validator
 const validateReview = compileSchema(jsonSchema);
