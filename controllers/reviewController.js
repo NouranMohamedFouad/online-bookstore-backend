@@ -25,6 +25,9 @@ const create = asyncWrapper(async (data) => {
   validateData(validate, data);
   return Review.create(data);
 });
+const getByBookId = asyncWrapper(async (bookId) =>
+  Review.find({bookId}).lean() // Fetch all reviews for a specific book
+);
 
 const updateById = asyncWrapper(async (id, data) => {
   const fieldsToUpdate = Object.fromEntries(
@@ -37,4 +40,4 @@ const updateById = asyncWrapper(async (id, data) => {
 
 const deleteById = asyncWrapper(async (id) => Review.findOneAndDelete({reviewId: id}).lean());
 
-export {create, deleteById, getAll, getById, updateById};
+export {create, deleteById, getAll, getByBookId, getById, updateById};

@@ -30,6 +30,17 @@ router.put('/:id', async (req, res, next) => {
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
+router.get('/book/:bookId', async (req, res, next) => {
+  const {bookId} = req.params;
+  console.log('Fetching reviews for book ID:', bookId);
+
+  const [err, data] = await ReviewController.getByBookId(bookId);
+
+  if (err) return next(new CustomError(err.message, 500));
+  if (!data || data.length === 0) return next(new CustomError('No reviews found for this book', 404));
+
+  res.json(data);
+});
 
 router.delete('/:id', async (req, res, next) => {
   const {id} = req.params;

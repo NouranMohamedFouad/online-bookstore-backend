@@ -1,3 +1,4 @@
+/* eslint-disable antfu/no-top-level-await */
 import {createServer} from 'node:http';
 import process from 'node:process';
 import cors from 'cors';
@@ -6,7 +7,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
-// import multer from 'multer';
+import multer from 'multer';
 import {createClient} from 'redis';
 import {WebSocketServer} from 'ws';
 import CustomError from './helpers/customErrors.js';
@@ -24,7 +25,7 @@ const server = createServer(app); // Create HTTP server for WebSocket support
 app.use(requestLogger);
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(cors());
+app.use(cors({origin: 'http://localhost:4200'}));
 
 // Connect to reddis client
 const client = createClient({
@@ -39,8 +40,8 @@ const client = createClient({
 client.on('error', (err) => console.log('Redis Client Error', err));
 
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: (req, _res) => (req.user ? 100 : 50),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: (req, _res) => (req.user ? 200 : 100),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -87,7 +88,6 @@ mongoose
 
 client.connect().then(() => console.log('Connected to Redis!'));
 client.set('foo', 'bar');
-// eslint-disable-next-line antfu/no-top-level-await
 const result = await client.get('foo');
 console.log(result); // >>> bar
 

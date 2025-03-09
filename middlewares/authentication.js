@@ -58,7 +58,7 @@ export const signup = async (req, res, next) => {
     if (err.code === 11000) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Duplicate field value',
+        message: 'Email already exists',
         details: err.keyValue
       });
     }

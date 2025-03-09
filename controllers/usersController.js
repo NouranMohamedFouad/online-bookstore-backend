@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import CustomError from '../helpers/customErrors.js';
 import {reset} from '../helpers/resetCounter.js';
@@ -31,6 +32,9 @@ const deleteAll = asyncWrapper(async () => {
 
 const update = asyncWrapper(async (id, data) => {
   if (data.password) {
+    if (!data.oldPassword) {
+      throw new CustomError('Old password is required', 400);
+    }
     if (!data.passwordConfirm) {
       throw new CustomError('Please confirm your password', 400);
     }
@@ -38,7 +42,8 @@ const update = asyncWrapper(async (id, data) => {
       throw new CustomError('Passwords do not match', 400);
     }
   }
-
+  const oldPassword = data.oldPassword;
+  delete data.oldPassword;
   delete data.passwordConfirm;
 
   const fieldsToUpdate = {};
@@ -50,27 +55,32 @@ const update = asyncWrapper(async (id, data) => {
 
   validatePartialData(validate, fieldsToUpdate);
 
-  let updatedUser = await Users.findOne({userId: id});
-  if (!updatedUser) {
+  let user = await Users.findOne({userId: id}).select('+password');
+  if (!user) {
     throw new CustomError('User not found', 404);
   }
 
   if (fieldsToUpdate.password) {
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new CustomError('Incorrect old password', 401);
+    }
+
     try {
-      updatedUser.password = fieldsToUpdate.password;
-      await updatedUser.save();
+      user.password = fieldsToUpdate.password;
+      await user.save();
     } catch (error) {
       throw new CustomError(error.message, 400);
     }
   } else {
-    updatedUser = await Users.findOneAndUpdate(
+    user = await Users.findOneAndUpdate(
       {userId: id},
       fieldsToUpdate,
       {new: true, runValidators: true}
     );
   }
 
-  return updatedUser;
+  return user;
 });
 
 const deleteById = asyncWrapper(async (userId) => {

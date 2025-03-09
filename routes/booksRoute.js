@@ -69,7 +69,7 @@ router.get('/', async (req, res, next) => {
     pageSize: Number(pageSize)
   });
 });
-router.get('/:id', protect, async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   const {id} = req.params;
   const [err, book] = await BooksController.getById(id);
   if (!book) return next(new CustomError('Book Not Found', 404));
@@ -77,7 +77,7 @@ router.get('/:id', protect, async (req, res, next) => {
   res.json(book);
 });
 
-router.patch('/:id', protect, restrictTo('admin'), upload.single('image'), async (req, res, next) => {
+router.patch('/:id', upload.single('image'), async (req, res, next) => {
   try {
     const {id} = req.params;
     if (req.file) {
@@ -103,7 +103,7 @@ router.delete('/', protect, restrictTo('admin'), async (req, res, next) => {
   res.json(data);
 });
 
-router.delete('/:id', protect, restrictTo('admin'), async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   const {id} = req.params;
   const [err, data] = await BooksController.deleteById(id);
   if (!data) return next(new CustomError('Book Not Found', 404));

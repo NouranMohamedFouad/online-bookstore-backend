@@ -50,23 +50,21 @@ const getAll = asyncWrapper(async (page = 1, pageSize = 10) => {
 });
 const getById = asyncWrapper(async (id) => {
   const book = await Books.findOne({bookId: id}).exec();
-
   if (!book) {
     return null;
   }
 
-  const reviews = await Review.find({bookId: id}).exec();
-
+  const reviews = await Review.find({bookId: book._id}).exec();
+  console.log(reviews);
   const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
   const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 
   const {__v, createdAt, updatedAt, ...bookData} = book.toObject();
-
+  console.log(book);
   const bookWithAverageRating = {
     ...bookData,
     average_rating: averageRating
   };
-
   return bookWithAverageRating;
 });
 
