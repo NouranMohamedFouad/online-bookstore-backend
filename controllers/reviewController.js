@@ -1,5 +1,8 @@
+import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
+import CustomError from '../helpers/customErrors.js';
 import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
+import {Books} from '../models/books.js';
 import {Review, validate} from '../models/review.js';
 
 const getAll = asyncWrapper(async ({page = 1, limit = 10}) => {
@@ -18,16 +21,43 @@ const getAll = asyncWrapper(async ({page = 1, limit = 10}) => {
     currentPage: Math.min(page, Math.max(Math.ceil(totalReviews / limit), 1))
   };
 });
+const getById = asyncWrapper(async (bookId) => {
+  // First, find the book by its auto-incremented bookId
+  const book = await Books.findOne({bookId});
 
-const getById = asyncWrapper(async (id) => Review.findOne({reviewId: id}).lean());
+  if (!book) {
+    throw new CustomError('Book not found', 404);
+  }
+
+  // Use the ObjectId from the found book to search for reviews
+  const bookObjectId = book._id;
+  const reviews = await Review.find({bookId: bookObjectId});
+
+  return reviews;
+});
+
+// const getById = asyncWrapper(async (bookId) => {
+//   const book = await Books.find({bookId});
+//   console.log('====================================');
+//   console.log(book);
+//   console.log('====================================');
+//   if (!book) {
+//     throw new CustomError('Book not found', 404);
+//   }
+//   const book_id = new mongoose.Types.ObjectId(book._id);
+//   console.log('====================================');
+//   console.log(book_id);
+
+//   console.log('====================================');
+//   const review = await Review.find({bookId: book._id});
+
+//   return review;
+// });
 
 const create = asyncWrapper(async (data) => {
   validateData(validate, data);
   return Review.create(data);
 });
-const getByBookId = asyncWrapper(async (bookId) =>
-  Review.find({bookId}).lean() // Fetch all reviews for a specific book
-);
 
 const updateById = asyncWrapper(async (id, data) => {
   const fieldsToUpdate = Object.fromEntries(
@@ -40,4 +70,4 @@ const updateById = asyncWrapper(async (id, data) => {
 
 const deleteById = asyncWrapper(async (id) => Review.findOneAndDelete({reviewId: id}).lean());
 
-export {create, deleteById, getAll, getByBookId, getById, updateById};
+export {create, deleteById, getAll, getById, updateById};

@@ -11,14 +11,14 @@ router.post('/', protect, restrictTo('admin', 'customer'), async (req, res, next
   res.json(data);
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', protect, restrictTo('admin'), async (req, res, next) => {
   console.log(OrdersController);
 
   const [err, data] = await OrdersController.getAll();
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
-router.get('/:userId', async (req, res, next) => {
+router.get('/:userId', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
   const {userId} = req.params;
   const [err, data] = await OrdersController.getById(userId);
 

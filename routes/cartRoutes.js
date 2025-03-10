@@ -7,11 +7,11 @@ import express from 'express';
 import {CartController} from '../controllers/index.js';
 import CustomError from '../helpers/customErrors.js';
 
-import {protect, restrictTo} from '../middlewares/authentication.js';
+import {protect} from '../middlewares/authentication.js';
 
 const router = express.Router();
 
-router.get('/', protect, restrictTo('admin'), async (req, res, next) => {
+router.get('/', protect, async (req, res, next) => {
   const [err, data] = await CartController.getAll(req.user);
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
@@ -36,8 +36,8 @@ router.post('/', protect, async (req, res, next) => {
   res.json(data);
 });
 
-router.delete('/:id', async (req, res, next) => {
-  const [err, data] = await CartController.deleteById(req.params.id);
+router.delete('/:id', protect, async (req, res, next) => {
+  const [err, data] = await CartController.deleteById(req.params.id, req.user);
   if (err) return next(new CustomError(err.message, 404));
   res.json(data);
 });
