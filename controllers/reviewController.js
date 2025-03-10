@@ -5,9 +5,10 @@ import {validateData, validatePartialData} from '../middlewares/schemaValidator.
 import {Books} from '../models/books.js';
 import {Review, validate} from '../models/review.js';
 
+// Get all reviews with pagination
 const getAll = asyncWrapper(async ({page = 1, limit = 10}) => {
-  page = Math.max(Number.parseInt(page, 10) || 1, 1);
-  limit = Math.max(Number.parseInt(limit, 10) || 10, 1);
+  page = Math.max(Number.parseInt(page, 10) || 1);
+  limit = Math.max(Number.parseInt(limit, 10) || 10);
 
   const [reviews, totalReviews] = await Promise.all([
     Review.find().skip((page - 1) * limit).limit(limit).lean(),
@@ -21,53 +22,66 @@ const getAll = asyncWrapper(async ({page = 1, limit = 10}) => {
     currentPage: Math.min(page, Math.max(Math.ceil(totalReviews / limit), 1))
   };
 });
-const getById = asyncWrapper(async (bookId) => {
-  // First, find the book by its auto-incremented bookId
-  const book = await Books.findOne({bookId});
 
+// Get reviews by book ID
+const getById = asyncWrapper(async (bookId) => {
+  if (!mongoose.Types.ObjectId.isValid(bookId)) {
+    throw new CustomError('Invalid book ID', 400);
+  }
+
+  const book = await Books.findById(bookId);
   if (!book) {
     throw new CustomError('Book not found', 404);
   }
 
-  // Use the ObjectId from the found book to search for reviews
-  const bookObjectId = book._id;
-  const reviews = await Review.find({bookId: bookObjectId});
-
+  const reviews = await Review.find({bookId: book._id});
   return reviews;
 });
 
-// const getById = asyncWrapper(async (bookId) => {
-//   const book = await Books.find({bookId});
-//   console.log('====================================');
-//   console.log(book);
-//   console.log('====================================');
-//   if (!book) {
-//     throw new CustomError('Book not found', 404);
-//   }
-//   const book_id = new mongoose.Types.ObjectId(book._id);
-//   console.log('====================================');
-//   console.log(book_id);
-
-//   console.log('====================================');
-//   const review = await Review.find({bookId: book._id});
-
-//   return review;
-// });
-
-const create = asyncWrapper(async (data) => {
-  validateData(validate, data);
-  return Review.create(data);
+// Create a new review
+const create = asyncWrapper(async (data, userId, bookId) => {
+  const book = await Books.findOne({bookId});
+  if (!book) {
+    throw new CustomError('Book not found', 404);
+  }
+  // console.log(book)
+  const obj = {...data, userId, bookId: book._id};
+  console.log(obj);
+  obj.bookId = obj.bookId.toString();
+  obj.userId = obj.userId.toString();
+  console.log(obj.bookId);
+  validateData(validate, obj);
+  console.log(obj);
+  return Review.create(obj);
 });
 
-const updateById = asyncWrapper(async (id, data) => {
-  const fieldsToUpdate = Object.fromEntries(
-    Object.entries(data).filter(([_, value]) => value !== undefined && value !== null && value !== '')
-  );
+const updateById = asyncWrapper(async (reviewId, data) => {
+  validatePartialData(validate, data);
 
-  validatePartialData(validate, fieldsToUpdate);
-  return Review.findOneAndUpdate({reviewId: id}, fieldsToUpdate, {new: true}).lean();
+  console.log('Searching for review with reviewId:', reviewId);
+  const review = await Review.findOne({reviewId: Number(reviewId)});
+
+  console.log('Found review:', review);
+  console.log('Update Data:', data);
+
+  if (!review) {
+    throw new CustomError('Review not found', 404);
+  }
+
+  return Review.findOneAndUpdate({reviewId: Number(reviewId)}, data, {new: true}).lean();
 });
 
-const deleteById = asyncWrapper(async (id) => Review.findOneAndDelete({reviewId: id}).lean());
+// Delete a review by ID
+const deleteById = asyncWrapper(async (reviewId) => {
+  const review = await Review.findOne({reviewId: Number(reviewId)});
+
+  console.log('Found review:', review);
+
+  if (!review) {
+    throw new CustomError('Review not found', 404);
+  }
+
+  return Review.findOneAndDelete({reviewId: Number(reviewId)}).lean();
+});
 
 export {create, deleteById, getAll, getById, updateById};
