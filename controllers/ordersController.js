@@ -55,16 +55,56 @@ const create = asyncWrapper(async (data) => {
     throw error;
   }
 });
-
 const getAll = asyncWrapper(async () => {
-  const orders = await Orders.find({}, 'books totalPrice status orderId').exec();
-  return orders;
+  const orders = await Orders.find({}, 'books totalPrice status orderId createdAt').exec();
+  const ordersWithBooks = [];
+  for (const order of orders) {
+    const books = [];
+    for (const bookItem of order.books) {
+      const book = await Books.findById(bookItem.bookId, 'title price image bookId').exec();
+      books.push({
+        ...bookItem.toObject(),
+        bookDetails: {
+          title: book.title,
+          price: book.price,
+          image: book.image,
+          bookId: book.bookId
+        }
+      });
+    }
+    ordersWithBooks.push({
+      ...order.toObject(),
+      books
+    });
+  }
+
+  return ordersWithBooks;
 });
 
 const getById = asyncWrapper(async (id) => {
   const user = await Users.findOne({userId: id}).select('_id').exec();
-  const orders = await Orders.find({userId: user._id}, 'books totalPrice status').exec();
-  return orders;
+  const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId').exec();
+  const ordersWithBooks = [];
+  for (const order of orders) {
+    const books = [];
+    for (const bookItem of order.books) {
+      const book = await Books.findById(bookItem.bookId, 'title price image bookId').exec();
+      books.push({
+        ...bookItem.toObject(),
+        bookDetails: {
+          title: book.title,
+          price: book.price,
+          image: book.image,
+          bookId: book.bookId
+        }
+      });
+    }
+    ordersWithBooks.push({
+      ...order.toObject(),
+      books
+    });
+  }
+  return ordersWithBooks;
 });
 
 const deleteAll = async () => {
