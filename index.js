@@ -27,14 +27,14 @@ app.use(express.json());
 app.use(cors({origin: 'http://localhost:4200'}));
 
 // Connect to reddis client
-const client = createClient({
-  username: 'default',
-  password: process.env.REDIS_PASSWORD,
-  socket: {
-    host: 'redis-16848.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
-    port: 16848
-  }
-});
+// const client = createClient({
+//   username: 'default',
+//   password: process.env.REDIS_PASSWORD,
+//   socket: {
+//     host: 'redis-16848.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
+//     port: 16848
+//   }
+// });
 
 // client.on('error', (err) => console.log('Redis Client Error', err));
 const limiter = rateLimit({
@@ -79,15 +79,16 @@ app.get('/', (_req, res) => {
 });
 
 // Connect to MongoDB
+
 mongoose
   .connect(DB, {})
   .then(() => console.log('DB connection Done!'))
   .catch((err) => console.error('DB Connection Error:', err));
 
-client.connect().then(() => console.log('Connected to Redis!'));
-client.set('foo', 'bar');
-const result = await client.get('foo');
-console.log(result); // >>> bar
+// client.connect().then(() => console.log('Connected to Redis!'));
+// client.set('foo', 'bar');
+// const result = await client.get('foo');
+// console.log(result); // >>> bar
 
 // ------------------- WebSocket Setup -------------------
 const wss = new WebSocketServer({server});
