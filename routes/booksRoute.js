@@ -69,7 +69,7 @@ router.get('/', async (req, res, next) => {
     pageSize: Number(pageSize)
   });
 });
-router.get('/:id', protect, async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   const {id} = req.params;
   const [err, book] = await BooksController.getById(id);
   if (!book) return next(new CustomError('Book Not Found', 404));
