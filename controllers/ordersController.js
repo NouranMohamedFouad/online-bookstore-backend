@@ -12,63 +12,64 @@ const create = asyncWrapper(async (data) => {
   session.startTransaction();
 
   try {
-    const user = await Users.findOne({userId: data.userId}).select('_id').session(session);
-    if (!user) {
-      throw new Error(`user with ID ${data.userId} not found`);
-    }
+    const user = await Users.findOne({userId: data.userId})
+      .select('_id name email')
+      .session(session);
+    if (!user) throw new Error(`User with ID ${data.userId} not found`);
+
     let totalPrice = 0;
     const updatedBooks = [];
 
     for (const item of data.books) {
       const book = await Books.findOne({bookId: item.bookId}).session(session);
-      if (!book) {
-        throw new Error(`Book with ID ${item.bookId} not found`);
-      }
+      if (!book) throw new Error(`Book with ID ${item.bookId} not found`);
+      if (book.stock < item.quantity) throw new Error(`Not enough stock for book ID ${item.bookId}`);
 
-      if (book.stock < item.quantity) {
-        throw new Error(`Not enough stock for book ID ${item.bookId}`);
-      }
       book.stock -= item.quantity;
       await book.save({session});
       totalPrice += item.quantity * book.price;
-      updatedBooks.push({
-        bookId: String(book._id),
-        quantity: item.quantity
-      });
+      updatedBooks.push({bookId: String(book._id), quantity: item.quantity});
     }
-    const orderData = {
-      ...data,
-      userId: user._id.toString(),
-      books: updatedBooks,
-      totalPrice,
-      status: String(data.status)
-    };
 
+    const orderData = {...data, userId: user._id.toString(), books: updatedBooks, totalPrice, status: String(data.status)};
     validateData(validate, orderData);
 
     const order = await Orders.create([orderData], {session});
-    await session.commitTransaction();
-    session.endSession();
+    if (!user.email) {
+      throw new Error(`User with ID ${data.userId} does not have a valid email.`);
+    }
 
     const emailText = `
-      Hi ${user.name},
+      Hi ${user.name},  
+    
+      Great news! Your order has been placed successfully. 🎉  
 
-      Your order has been placed successfully!
-      Order ID: ${order[0].orderId}
-      Total Price: $${totalPrice.toFixed(2)}
+      📦 **Order ID:** ${order[0].orderId}  
+      💰 **Total Price:** $${totalPrice.toFixed(2)}  
 
-      Thank you for shopping with us!
+      Thank you for choosing LitVerse! We appreciate your support and hope you enjoy your books.  
+
+      Happy reading! 📚✨  
+
+      Best Regards,  
+      The LitVerse Team
     `;
 
     await sendEmail(user.email, 'Order Confirmation', emailText);
 
+    await session.commitTransaction();
+    session.endSession();
+
     return order[0];
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     session.endSession();
     throw error;
   }
 });
+
 const getAll = asyncWrapper(async () => {
   const orders = await Orders.find({}, 'books totalPrice status orderId createdAt').exec();
   const ordersWithBooks = [];

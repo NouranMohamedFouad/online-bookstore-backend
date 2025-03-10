@@ -55,8 +55,8 @@ export const signup = async (req, res, next) => {
 
     await sendEmail(
       newUser.email,
-      'Welcome to Our Store!',
-      `Hi ${newUser.name},\n\nThank you for signing up! 🎉\nWe're excited to have you.\n\nBest Regards,\nYour Store Team`
+      'Welcome to LitVerse!',
+      `Hi ${newUser.name},\n\nThank you for joining LitVerse! 🎉\nWe're thrilled to have you in our community of book lovers.\n\nHappy reading!\n\nBest Regards,\nThe LitVerse Team`
     );
 
     createSendToken(newUser, 201, req, res);
