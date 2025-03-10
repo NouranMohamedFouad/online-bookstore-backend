@@ -11,14 +11,15 @@ router.post('/', protect, restrictTo('admin', 'customer'), async (req, res, next
   res.json(data);
 });
 
-router.get('/', protect, restrictTo('admin'), async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   console.log(OrdersController);
 
   const [err, data] = await OrdersController.getAll();
   if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
-router.get('/:userId', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
+
+router.get('/:userId', async (req, res, next) => {
   const {userId} = req.params;
   const [err, data] = await OrdersController.getById(userId);
 
@@ -26,6 +27,18 @@ router.get('/:userId', protect, restrictTo('admin', 'customer'), async (req, res
   if (!data || data.length === 0) {
     return next(new CustomError('No orders found for this user', 404));
   }
+  res.json(data);
+});
+
+router.patch('/:id', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
+  const {id} = req.params;
+  const {status} = req.query;
+
+  if (!status) {
+    return next(new CustomError('Status query parameter is required', 400));
+  }
+  const [err, data] = await OrdersController.updateOrderStatus(id, status);
+  if (err) return next(new CustomError(err.message, 422));
   res.json(data);
 });
 

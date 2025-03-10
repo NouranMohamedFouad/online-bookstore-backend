@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {reset} from '../helpers/resetCounter.js';
-import {validateData} from '../middlewares/schemaValidator.js';
+import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
 import {Books} from '../models/books.js';
 import {Orders, validate} from '../models/orders.js';
 import {Users} from '../models/users.js';
@@ -122,6 +122,45 @@ const getById = asyncWrapper(async (id) => {
   return ordersWithBooks;
 });
 
+const updateOrderStatus = asyncWrapper(async (orderId, status) => {
+  const fieldToUpdate = {};
+  fieldToUpdate.status = status;
+
+  validatePartialData(validate, fieldToUpdate);
+
+  const order = await Orders.findOneAndUpdate(
+    {orderId},
+    {status},
+    {new: true}
+  );
+  if (!order) {
+    throw new Error(`Order with ID ${orderId} not found`);
+  }
+  const user = await Users.findOne({_id: order.userId});
+  if (!user) {
+    throw new Error(`Order with ID ${user} not found`);
+  }
+  const emailText = `
+    Hi ${user.name},  
+
+    We wanted to update you on your order status. 📢  
+
+    📦 **Order ID:** ${order.orderId}  
+    🔄 **Current Status:** ${fieldToUpdate.status.toUpperCase()}  
+
+    We appreciate your patience and support. If you have any questions, feel free to reach out.  
+
+    Thank you for choosing LitVerse! 📚✨  
+
+    Best Regards,  
+    The LitVerse Team
+  `;
+
+  await sendEmail(user.email, 'Order\'s Status updated', emailText);
+
+  return order;
+});
+
 const deleteAll = async () => {
   const result = await Orders.deleteMany({});
   await reset('orderId');
@@ -142,5 +181,6 @@ export {
   deleteAll,
   deleteById,
   getAll,
-  getById
+  getById,
+  updateOrderStatus
 };
