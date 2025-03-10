@@ -5,6 +5,7 @@ import {validateData} from '../middlewares/schemaValidator.js';
 import {Books} from '../models/books.js';
 import {Orders, validate} from '../models/orders.js';
 import {Users} from '../models/users.js';
+import {sendEmail} from '../services/emailService.js';
 
 const create = asyncWrapper(async (data) => {
   const session = await mongoose.startSession();
@@ -48,6 +49,19 @@ const create = asyncWrapper(async (data) => {
     const order = await Orders.create([orderData], {session});
     await session.commitTransaction();
     session.endSession();
+
+    const emailText = `
+      Hi ${user.name},
+
+      Your order has been placed successfully!
+      Order ID: ${order[0].orderId}
+      Total Price: $${totalPrice.toFixed(2)}
+
+      Thank you for shopping with us!
+    `;
+
+    await sendEmail(user.email, 'Order Confirmation', emailText);
+
     return order[0];
   } catch (error) {
     await session.abortTransaction();

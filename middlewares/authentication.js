@@ -2,6 +2,7 @@ import process from 'node:process';
 import {promisify} from 'node:util';
 import jwt from 'jsonwebtoken';
 import {validateData} from '../middlewares/schemaValidator.js';
+import {sendEmail} from '../services/emailService.js';
 import {Users, validate} from './../models/users.js';
 
 const signToken = (id) => {
@@ -51,6 +52,12 @@ export const signup = async (req, res, next) => {
       address: req.body.address,
       phone: req.body.phone
     });
+
+    await sendEmail(
+      newUser.email,
+      'Welcome to Our Store!',
+      `Hi ${newUser.name},\n\nThank you for signing up! 🎉\nWe're excited to have you.\n\nBest Regards,\nYour Store Team`
+    );
 
     createSendToken(newUser, 201, req, res);
   } catch (err) {
