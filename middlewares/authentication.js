@@ -56,7 +56,7 @@ export const signup = async (req, res, next) => {
     await sendEmail(
       newUser.email,
       'Welcome to LitVerse!',
-      Hi ${newUser.name},\n\nThank you for joining LitVerse! 🎉\nWe're thrilled to have you in our community of book lovers.\n\nHappy reading!\n\nBest Regards,\nThe LitVerse Team
+      `Hi ${newUser.name},\n\nThank you for joining LitVerse! 🎉\nWe're thrilled to have you in our community of book lovers.\n\nHappy reading!\n\nBest Regards,\nThe LitVerse Team`
     );
 
     createSendToken(newUser, 201, req, res);
@@ -104,7 +104,7 @@ export const logout = (req, res) => {
 export const protect = async (req, res, next) => {
   let token;
   console.log('Authorization header:', req.headers.authorization);
-  
+
   if (
     req.headers.authorization
     && req.headers.authorization.startsWith('Bearer')
@@ -121,9 +121,9 @@ export const protect = async (req, res, next) => {
   try {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     console.log('Token decoded, user ID:', decoded.id);
-    
+
     const currentUser = await Users.findById(decoded.id);
-    
+
     if (!currentUser) {
       console.log('User not found in database for ID:', decoded.id);
       return res.status(401).json({message: 'User does not exist.'});
