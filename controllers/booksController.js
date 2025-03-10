@@ -11,10 +11,39 @@ const create = asyncWrapper(async (data) => {
   return book;
 });
 
-const getAll = asyncWrapper(async (page = 1, pageSize = 10) => {
+const getAll = asyncWrapper(async (page = 1, pageSize = 10, title) => {
   const skip = (page - 1) * pageSize;
 
+  const matchStage = title ? {title: {$regex: title, $options: 'i'}} : {};
+
+  // First aggregation to get the total count of matching documents
+  const totalCountAggregation = await Books.aggregate([
+    {
+      $match: matchStage
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: 'bookId',
+        foreignField: 'bookId',
+        as: 'reviews'
+      }
+    },
+    {
+      $count: 'totalCount'
+    }
+  ]);
+
+  const totalCount = totalCountAggregation.length > 0 ? totalCountAggregation[0].totalCount : 0;
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Second aggregation to get the paginated results with average rating
   const booksWithAverageRating = await Books.aggregate([
+    {
+      $match: matchStage
+    },
     {
       $lookup: {
         from: 'reviews',
@@ -46,7 +75,14 @@ const getAll = asyncWrapper(async (page = 1, pageSize = 10) => {
     }
   ]);
 
-  return booksWithAverageRating;
+  // Return the response with the desired structure
+  return {
+    books: booksWithAverageRating, // Directly include the books array
+    totalCount,
+    totalPages,
+    currentPage: page,
+    pageSize
+  };
 });
 const getById = asyncWrapper(async (bookId) => {
   const book = await Books.findOne({bookId});

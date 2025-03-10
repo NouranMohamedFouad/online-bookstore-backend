@@ -5,7 +5,6 @@ import multer from 'multer';
 import {BooksController} from '../controllers/index.js';
 import CustomError from '../helpers/customErrors.js';
 import {protect, restrictTo} from '../middlewares/authentication.js';
-import {Books} from '../models/books.js';
 
 const uploadDir = 'uploads/';
 if (!fs.existsSync(uploadDir)) {
@@ -53,21 +52,10 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 });
 
 router.get('/', async (req, res, next) => {
-  const {page = 1, pageSize = 10} = req.query;
-  const [err, data] = await BooksController.getAll(Number(page), Number(pageSize));
+  const {page = 1, pageSize = 10, title} = req.query;
+  const [err, data] = await BooksController.getAll(Number(page), Number(pageSize), title);
   if (err) return next(new CustomError(err.message, 500));
-
-  // Add pagination metadata to the response
-  const totalCount = await Books.countDocuments(); // Get the total number of books
-  const totalPages = Math.ceil(totalCount / pageSize);
-
-  res.json({
-    books: data, // The paginated books
-    totalCount,
-    totalPages,
-    currentPage: Number(page),
-    pageSize: Number(pageSize)
-  });
+  res.json(data);
 });
 router.get('/:id', async (req, res, next) => {
   const {id} = req.params;
