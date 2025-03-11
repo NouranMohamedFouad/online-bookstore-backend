@@ -1,17 +1,18 @@
 import {createServer} from 'node:http';
 import process from 'node:process';
+// import {log} from 'node:util';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
-import multer from 'multer';
+// import multer from 'multer';
 import {createClient} from 'redis';
 import {WebSocketServer} from 'ws';
 import CustomError from './helpers/customErrors.js';
-import requestLogger from './middlewares/logging.js';
 
+import requestLogger from './middlewares/logging.js';
 import router from './routes/index.js';
 
 dotenv.config();
@@ -27,14 +28,14 @@ app.use(express.json());
 app.use(cors({origin: 'http://localhost:4200'}));
 
 // Connect to reddis client
-// const client = createClient({
-//   username: 'default',
-//   password: process.env.REDIS_PASSWORD,
-//   socket: {
-//     host: 'redis-16848.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
-//     port: 16848
-//   }
-// });
+const client = createClient({
+  username: 'default',
+  password: process.env.REDIS_PASSWORD,
+  socket: {
+    host: 'redis-16848.crce177.me-south-1-1.ec2.redns.redis-cloud.com',
+    port: 16848
+  }
+});
 
 // client.on('error', (err) => console.log('Redis Client Error', err));
 const limiter = rateLimit({
@@ -85,38 +86,23 @@ mongoose
   .then(() => console.log('DB connection Done!'))
   .catch((err) => console.error('DB Connection Error:', err));
 
-// client.connect().then(() => console.log('Connected to Redis!'));
-// client.set('foo', 'bar');
-// const result = await client.get('foo');
-// console.log(result); // >>> bar
+client.connect().then(() => console.log('Connected to Redis!'));
+client.set('foo', 'bar');
+// eslint-disable-next-line antfu/no-top-level-await
+const result = await client.get('foo');
+console.log(result); // >>> bar
 
-// ------------------- WebSocket Setup -------------------
-const wss = new WebSocketServer({server});
+const wss = new WebSocketServer({port: 8080});
 
-wss.on('connection', (ws, req) => {
-  console.log('New WebSocket connection established.');
+wss.on('connection', (ws) => {
+  ws.on('error', console.error);
 
-  // Send a welcome message to the client
-  ws.send(JSON.stringify({message: 'Welcome to WebSocket Server!'}));
-
-  // Handle messages from the client
   ws.on('message', (data) => {
-    console.log('Received:', data.toString());
-
-    // Broadcast the message to all connected clients
-    wss.clients.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data.toString());
-      }
-    });
+    console.log('received: %s', data);
   });
 
-  // Handle client disconnection
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
+  ws.send('something');
 });
-
 // Start Server
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
