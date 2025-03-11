@@ -25,7 +25,7 @@ router.post('/', protect, async (req, res, next) => {
 });
 
 // Get all reviews
-router.get('/', async (req, res, next) => {
+router.get('/', protect,async (req, res, next) => {
   try {
     const [err, data] = await ReviewController.getAll(req.query);
     if (err) return next(new CustomError(err.message, 500));
@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // Get a single review by ID
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', protect,async (req, res, next) => {
   try {
     const {id} = req.params;
     const [err, data] = await ReviewController.getById(id);
