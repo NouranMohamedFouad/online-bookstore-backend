@@ -98,7 +98,7 @@ const getAll = asyncWrapper(async () => {
 
 const getById = asyncWrapper(async (id) => {
   const user = await Users.findOne({userId: id}).select('_id').exec();
-  const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId').exec();
+  const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId createdAt').exec();
   const ordersWithBooks = [];
   for (const order of orders) {
     const books = [];
