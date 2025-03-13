@@ -31,7 +31,7 @@ router.delete('/', protect, restrictTo('admin'), async (req, res, next) => {
   res.json(data);
 });
 
-router.patch('/:id', protect, restrictTo('customer', 'admin'), async (req, res, next) => {
+router.patch('/:id', protect, restrictTo('customer'), async (req, res, next) => {
   const {id} = req.params;
   if (req.user.userId.toString() !== id.toString()) {
     return next(new CustomError('You can only update your own profile', 403));
