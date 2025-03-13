@@ -78,11 +78,17 @@ const create = asyncWrapper(async (user) => {
 
 const getAll = asyncWrapper(async () => {
   const orders = await Orders.find({}, 'books totalPrice status orderId createdAt').exec();
+  if (!orders || orders.length === 0) {
+    return [];
+  }
   const ordersWithBooks = [];
   for (const order of orders) {
     const books = [];
     for (const bookItem of order.books) {
       const book = await Books.findById(bookItem.bookId, 'title price image bookId').exec();
+      if (!book) {
+        continue;
+      }
       books.push({
         ...bookItem.toObject(),
         bookDetails: {
@@ -106,10 +112,22 @@ const getById = asyncWrapper(async (id) => {
   const user = await Users.findOne({userId: id}).select('_id').exec();
   const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId createdAt').exec();
   const ordersWithBooks = [];
+  if (!user) {
+    return [];
+  }
+  if (!orders || orders.length === 0) {
+    return [];
+  }
   for (const order of orders) {
+    if (!order.books || order.books.length === 0) {
+      continue;
+    }
     const books = [];
     for (const bookItem of order.books) {
       const book = await Books.findById(bookItem.bookId, 'title price image bookId').exec();
+      if (!book) {
+        continue;
+      }
       books.push({
         ...bookItem.toObject(),
         bookDetails: {
