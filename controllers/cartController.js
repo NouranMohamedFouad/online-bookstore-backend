@@ -60,20 +60,43 @@ const getAll = asyncWrapper(async (user) => {
     _id: cart._id,
     userId: user.userId, // Use the numeric userId from the user object
     total_price: cart.total_price,
-    items: cart.items.map(item => ({
-      bookId: item.bookId._id,
-      quantity: item.quantity,
-      price: item.price,
-      book: {
-        _id: item.bookId._id,
-        title: item.bookId.title,
-        author: item.bookId.author,
-        image: item.bookId.image,
-        price: item.bookId.price,
-        category: item.bookId.category,
-        description: item.bookId.description
+    items: cart.items.map(item => {
+      // Check if bookId is null or undefined
+      if (!item.bookId) {
+        console.warn('Found cart item with null book reference. Item:', item);
+        // Return a placeholder for this item
+        return {
+          bookId: null,
+          quantity: item.quantity,
+          price: item.price || 0,
+          book: {
+            _id: null,
+            title: 'Unavailable Book',
+            author: 'Unknown',
+            image: '',
+            price: item.price || 0,
+            category: '',
+            description: 'This book is no longer available'
+          }
+        };
       }
-    }))
+      
+      // Normal case when book reference exists
+      return {
+        bookId: item.bookId._id,
+        quantity: item.quantity,
+        price: item.price,
+        book: {
+          _id: item.bookId._id,
+          title: item.bookId.title,
+          author: item.bookId.author,
+          image: item.bookId.image,
+          price: item.bookId.price,
+          category: item.bookId.category,
+          description: item.bookId.description
+        }
+      };
+    })
   };
 
   console.log('Cart found and populated with book details:', cart._id);
@@ -250,43 +273,50 @@ const deleteById = asyncWrapper(async (bookId, user) => {
     throw new CustomError('Invalid book ID format', 400);
   }
 
-  const book = await Books.findById(bookId);
-  if (!book) {
-    throw new CustomError('Book not found', 404);
-  }
-
   const cart = await Cart.findOne({userId: virtualObjectId});
+
   if (!cart) {
-    console.log('No cart found for user');
-    throw new CustomError('Cart not found', 404);
+    console.log('No cart found for user:', user.userId);
+    return {
+      userId: user.userId,
+      items: [],
+      total_price: 0,
+      success: true,
+      message: 'Item removed (cart was already empty)'
+    };
   }
 
-  // Check if item exists in cart
-  const itemIndex = cart.items.findIndex((item) => item.bookId.toString() === bookId.toString());
+  const itemIndex = cart.items.findIndex(
+    (item) => item.bookId && item.bookId.toString() === bookId
+  );
+
   if (itemIndex === -1) {
-    throw new CustomError('Item not found in your cart', 404);
+    console.log('Item not found in cart:', bookId);
+    // Return success anyway to avoid errors in the UI
+    return {
+      success: true,
+      message: 'Item was already removed',
+      data: await getAll(user)
+    };
   }
 
-  // Calculate price of item being removed
-  const removedItem = cart.items[itemIndex];
-  const priceReduction = removedItem.quantity * removedItem.price;
+  // Calculate the price to deduct
+  const priceToDeduct = cart.items[itemIndex].price * cart.items[itemIndex].quantity;
 
-  // Remove the item from cart
-  cart.items = cart.items.filter((item) => item.bookId.toString() !== bookId.toString());
-
+  // Remove the item
+  cart.items.splice(itemIndex, 1);
+  
   // Update total price
-  cart.total_price = Math.max(0, cart.total_price - priceReduction);
+  cart.total_price = Math.max(0, cart.total_price - priceToDeduct);
 
-  console.log('Saving cart after item removal, new total:', cart.total_price);
   await cart.save();
+  console.log('Item removed from cart successfully');
 
-  // Get the populated cart after deletion
-  const populatedCart = await getAll(user);
-
+  // Return success with updated cart
   return {
     success: true,
-    message: 'Item removed from cart',
-    cart: populatedCart
+    message: 'Item removed successfully',
+    data: await getAll(user)
   };
 });
 
