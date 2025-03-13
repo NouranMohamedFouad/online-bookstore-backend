@@ -10,8 +10,8 @@ import morgan from 'morgan';
 // import multer from 'multer';
 import {createClient} from 'redis';
 import {WebSocketServer} from 'ws';
+import {notifyAdmins} from './helpers/adminsNotifications.js';
 import CustomError from './helpers/customErrors.js';
-
 import requestLogger from './middlewares/logging.js';
 import router from './routes/index.js';
 
@@ -91,17 +91,22 @@ client.set('foo', 'bar');
 const result = await client.get('foo');
 console.log(result); // >>> bar
 
+/// //////////////////////// web socket ///////////////////////////////////////\
+
 const wss = new WebSocketServer({port: 8080});
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
 
   ws.on('message', (data) => {
-    console.log('received: %s', data);
-  });
+    const parsedData = JSON.parse(data);
 
-  ws.send('something');
+    console.log('received: ', parsedData);
+    notifyAdmins(parsedData);
+    ws.send(JSON.stringify({message: 'Data received', data: parsedData}));
+  });
 });
+
 // Start Server
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

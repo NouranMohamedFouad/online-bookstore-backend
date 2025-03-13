@@ -3,55 +3,61 @@ import {asyncWrapper} from '../helpers/asyncWrapper.js';
 import {reset} from '../helpers/resetCounter.js';
 import {validateData, validatePartialData} from '../middlewares/schemaValidator.js';
 import {Books} from '../models/books.js';
+import {Cart} from '../models/cart.js';
 import {Orders, validate} from '../models/orders.js';
 import {Users} from '../models/users.js';
 import {sendEmail} from '../services/emailService.js';
 
-const create = asyncWrapper(async (data) => {
+const create = asyncWrapper(async (user) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const user = await Users.findOne({userId: data.userId})
-      .select('_id name email')
-      .session(session);
-    if (!user) throw new Error(`User with ID ${data.userId} not found`);
+    console.log('user:', user);
 
-    let totalPrice = 0;
+    const userCart = await Cart.findOne({userId: user._id});
+
+    console.log('user Cart:', userCart);
+
     const updatedBooks = [];
 
-    for (const item of data.books) {
-      const book = await Books.findOne({bookId: item.bookId}).session(session);
+    for (const item of userCart.items) {
+      const book = await Books.findOne({_id: item.bookId}).session(session);
       if (!book) throw new Error(`Book with ID ${item.bookId} not found`);
       if (book.stock < item.quantity) throw new Error(`Not enough stock for book ID ${item.bookId}`);
 
       book.stock -= item.quantity;
       await book.save({session});
-      totalPrice += item.quantity * book.price;
       updatedBooks.push({bookId: String(book._id), quantity: item.quantity});
     }
 
-    const orderData = {...data, userId: user._id.toString(), books: updatedBooks, totalPrice, status: String(data.status)};
+    const orderData = {
+      userId: user._id.toString(),
+      books: updatedBooks,
+      totalPrice: userCart.total_price,
+      status: 'pending'
+    };
     validateData(validate, orderData);
 
     const order = await Orders.create([orderData], {session});
+
     if (!user.email) {
-      throw new Error(`User with ID ${data.userId} does not have a valid email.`);
+      throw new Error(`User with ID ${user.userId} does not have a valid email.`);
     }
 
     const emailText = `
-      Hi ${user.name},  
-    
-      Great news! Your order has been placed successfully. 🎉  
+      Hi ${user.name},
 
-      📦 **Order ID:** ${order[0].orderId}  
-      💰 **Total Price:** $${totalPrice.toFixed(2)}  
+      Great news! Your order has been placed successfully. 🎉
 
-      Thank you for choosing LitVerse! We appreciate your support and hope you enjoy your books.  
+      📦 **Order ID:** ${order[0].orderId}
+      💰 **Total Price:** $${userCart.total_price.toFixed(2)}
 
-      Happy reading! 📚✨  
+      Thank you for choosing LitVerse! We appreciate your support and hope you enjoy your books.
 
-      Best Regards,  
+      Happy reading! 📚✨
+
+      Best Regards,
       The LitVerse Team
     `;
 
@@ -98,7 +104,7 @@ const getAll = asyncWrapper(async () => {
 
 const getById = asyncWrapper(async (id) => {
   const user = await Users.findOne({userId: id}).select('_id').exec();
-  const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId').exec();
+  const orders = await Orders.find({userId: user._id}, 'books totalPrice status orderId createdAt').exec();
   const ordersWithBooks = [];
   for (const order of orders) {
     const books = [];
