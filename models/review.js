@@ -52,8 +52,8 @@ const reviewSchema = new Schema(
 );
 
 reviewSchema.plugin(AutoIncrement, {inc_field: 'reviewId'});
-reviewSchema.index({userId: 1, bookId: 1}, {unique: true});
-reviewSchema.index({comment: 'text'});
+
+
 
 reviewSchema.virtual('summary').get(function () {
   return `Rating: ${this.rating}, Comment: ${this.comment.substring(0, 50)}...`;
