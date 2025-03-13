@@ -6,8 +6,10 @@ import {protect, restrictTo} from '../middlewares/authentication.js';
 const router = express.Router();
 
 router.post('/', protect, restrictTo('admin', 'customer'), async (req, res, next) => {
-  const [err, data] = await OrdersController.create(req.body);
+  const {status} = req.query;
+  const [err, data] = await OrdersController.create(req.user, status);
   if (err) return next(new CustomError(err.message, 422));
+
   res.json(data);
 });
 

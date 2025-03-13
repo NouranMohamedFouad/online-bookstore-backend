@@ -1,5 +1,5 @@
 import {UsersController} from '../controllers/index.js';
-import {sendEmail} from '../services/emailService.js';
+// import {sendEmail} from '../services/emailService.js';
 
 export const notifyAdmins = async (data) => {
   const [err, users] = await UsersController.getAll();
@@ -28,9 +28,10 @@ export const notifyAdmins = async (data) => {
   Best regards,  
   **The LitVerse Team**  
 `;
+  console.log(emailText);
 
-  admins.forEach(async (admin) => {
-    await sendEmail(admin.email, 'New Order Notification', emailText);
-    console.log(`Email sent to admin: ${admin.email}`);
-  });
+  // admins.forEach(async (admin) => {
+  //   await sendEmail(admin.email, 'New Order Notification', emailText);
+  //   console.log(`Email sent to admin: ${admin.email}`);
+  // });
 };
