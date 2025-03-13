@@ -27,7 +27,6 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors({origin: 'http://localhost:4200'}));
 
-// Connect to reddis client
 const client = createClient({
   username: 'default',
   password: process.env.REDIS_PASSWORD,
@@ -37,7 +36,7 @@ const client = createClient({
   }
 });
 
-// client.on('error', (err) => console.log('Redis Client Error', err));
+client.on('error', (err) => console.log('Redis Client Error', err));
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 1000,

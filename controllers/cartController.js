@@ -13,7 +13,14 @@ const getAll = asyncWrapper(async (user) => {
     throw new CustomError('User not authenticated properly', 401);
   }
 
-  const cart = await Cart.findOne({userId: user._id}).exec();
+  // Use populate to include book details in the response
+  const cart = await Cart.findOne({userId: user._id})
+    .populate({
+      path: 'items.bookId',
+      model: 'Books',
+      select: 'title author image price category description' // Select the fields you need
+    })
+    .exec();
 
   if (!cart) {
     console.log('No cart found for user:', user._id);
@@ -25,8 +32,29 @@ const getAll = asyncWrapper(async (user) => {
     };
   }
 
-  console.log('Cart found:', cart._id, 'with', cart.items.length, 'items');
-  return cart;
+  // Transform the populated data to match the frontend's expected structure
+  const transformedCart = {
+    _id: cart._id,
+    userId: cart.userId,
+    total_price: cart.total_price,
+    items: cart.items.map(item => ({
+      bookId: item.bookId._id,
+      quantity: item.quantity,
+      price: item.price,
+      book: {
+        _id: item.bookId._id,
+        title: item.bookId.title,
+        author: item.bookId.author,
+        image: item.bookId.image,
+        price: item.bookId.price,
+        category: item.bookId.category,
+        description: item.bookId.description
+      }
+    }))
+  };
+
+  console.log('Cart found and populated with book details:', cart._id);
+  return transformedCart;
 });
 const updateQuantity = asyncWrapper(async (data, user) => {
   const {bookId, quantity} = data;
@@ -111,7 +139,9 @@ const updateQuantity = asyncWrapper(async (data, user) => {
   cart.total_price = Math.max(cart.total_price, 0);
   console.log('Saving updated cart:', cart._id);
   await cart.save();
-  return cart;
+  
+  // Return populated cart data for consistency
+  return getAll(user);
 });
 
 const create = asyncWrapper(async (data, user) => {
@@ -173,7 +203,8 @@ const create = asyncWrapper(async (data, user) => {
     await cart.save();
   }
 
-  return cart;
+  // Return populated cart data for consistency
+  return getAll(user);
 });
 
 const deleteById = asyncWrapper(async (bookId, user) => {
@@ -217,10 +248,13 @@ const deleteById = asyncWrapper(async (bookId, user) => {
   console.log('Saving cart after item removal, new total:', cart.total_price);
   await cart.save();
 
+  // Get the populated cart after deletion
+  const populatedCart = await getAll(user);
+
   return {
     success: true,
     message: 'Item removed from cart',
-    cart
+    cart: populatedCart
   };
 });
 
