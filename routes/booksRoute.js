@@ -33,7 +33,7 @@ router.use('/uploads', express.static(path.join(process.cwd(), uploadDir)));
 const getImageUrl = (req, filename) =>
   filename ? `${req.protocol}://${req.get('host')}/uploads/${filename}` : null;
 
-router.post('/', upload.single('image'), async (req, res, next) => {
+router.post('/', protect, restrictTo('admin'), upload.single('image'), async (req, res, next) => {
   try {
     if (!req.file) return next(new CustomError('Image is required', 400));
 
@@ -57,7 +57,7 @@ router.get('/', async (req, res, next) => {
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', protect, async (req, res, next) => {
   const {id} = req.params;
   const [err, book] = await BooksController.getById(id);
   if (!book) return next(new CustomError('Book Not Found', 404));
@@ -65,7 +65,7 @@ router.get('/:id', async (req, res, next) => {
   res.json(book);
 });
 
-router.patch('/:id', upload.single('image'), async (req, res, next) => {
+router.patch('/:id', protect, restrictTo('admin'), upload.single('image'), async (req, res, next) => {
   try {
     const {id} = req.params;
     if (req.file) {
@@ -91,7 +91,7 @@ router.delete('/', protect, restrictTo('admin'), async (req, res, next) => {
   res.json(data);
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', protect, restrictTo('admin'), async (req, res, next) => {
   const {id} = req.params;
   const [err, data] = await BooksController.deleteById(id);
   if (!data) return next(new CustomError('Book Not Found', 404));
