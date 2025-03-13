@@ -13,6 +13,7 @@ const router = express.Router();
 
 router.get('/', protect, async (req, res, next) => {
   const [err, data] = await CartController.getAll(req.user);
+  // console.log(req.user);
   if (err) return next(new CustomError(err.message, 500));
   res.json(data);
 });

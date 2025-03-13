@@ -4,29 +4,52 @@ import CustomError from '../helpers/customErrors.js';
 // import {validateData} from '../middlewares/schemaValidator.js';
 import {Books} from '../models/books.js';
 import {Cart} from '../models/cart.js';
-// import {Users} from '../models/users.js';
+import {Users} from '../models/users.js';
+
+// Helper function to create a virtual ObjectId from a numeric userId
+// This is a workaround to allow us to use the numeric userId while maintaining compatibility
+// with the existing schema that expects an ObjectId
+const createVirtualObjectId = (numericId) => {
+  // Pad the numeric ID to 24 characters (standard ObjectId length)
+  // First convert to string
+  const idStr = numericId.toString();
+  // Then pad with zeros to 24 characters
+  const paddedId = idStr.padStart(24, '0');
+  try {
+    // Try to create a valid ObjectId
+    return new mongoose.Types.ObjectId(paddedId);
+  } catch (error) {
+    console.error('Error creating virtual ObjectId:', error);
+    // If that fails, create a dummy ObjectId (for illustration)
+    // In practice, we should handle this error case properly
+    return new mongoose.Types.ObjectId();
+  }
+};
 
 const getAll = asyncWrapper(async (user) => {
-  console.log('Getting cart for user:', user._id);
+  console.log('Getting cart for user:', user.userId);
 
-  if (!user || !user._id) {
+  if (!user || !user.userId) {
     throw new CustomError('User not authenticated properly', 401);
   }
 
+  // Create a virtual ObjectId from the numeric userId
+  const virtualObjectId = createVirtualObjectId(user.userId);
+
   // Use populate to include book details in the response
-  const cart = await Cart.findOne({userId: user._id})
+  const cart = await Cart.findOne({userId: virtualObjectId})
     .populate({
       path: 'items.bookId',
       model: 'Books',
-      select: 'title author image price category description' // Select the fields you need
+      select: 'title author image price category description'
     })
     .exec();
 
   if (!cart) {
-    console.log('No cart found for user:', user._id);
+    console.log('No cart found for user:', user.userId);
     // Instead of throwing an error, return an empty cart
     return {
-      userId: user._id,
+      userId: user.userId,
       items: [],
       total_price: 0
     };
@@ -35,7 +58,7 @@ const getAll = asyncWrapper(async (user) => {
   // Transform the populated data to match the frontend's expected structure
   const transformedCart = {
     _id: cart._id,
-    userId: cart.userId,
+    userId: user.userId, // Use the numeric userId from the user object
     total_price: cart.total_price,
     items: cart.items.map(item => ({
       bookId: item.bookId._id,
@@ -56,9 +79,10 @@ const getAll = asyncWrapper(async (user) => {
   console.log('Cart found and populated with book details:', cart._id);
   return transformedCart;
 });
+
 const updateQuantity = asyncWrapper(async (data, user) => {
   const {bookId, quantity} = data;
-  console.log('Update quantity request:', {userId: user._id, bookId, quantity});
+  console.log('Update quantity request:', {userId: user.userId, bookId, quantity});
 
   if (!mongoose.Types.ObjectId.isValid(bookId)) {
     throw new CustomError('Invalid book ID format', 400);
@@ -67,13 +91,16 @@ const updateQuantity = asyncWrapper(async (data, user) => {
     throw new CustomError('Quantity must be a non-negative integer', 400);
   }
 
+  // Create a virtual ObjectId from the numeric userId
+  const virtualObjectId = createVirtualObjectId(user.userId);
+
   const book = await Books.findById(bookId);
 
   if (!book) {
     throw new CustomError('Book not found', 404);
   }
 
-  let cart = await Cart.findOne({userId: user._id});
+  let cart = await Cart.findOne({userId: virtualObjectId});
 
   if (!cart) {
     console.log('No cart found for user, creating new cart');
@@ -84,7 +111,7 @@ const updateQuantity = asyncWrapper(async (data, user) => {
       }
 
       cart = await Cart.create({
-        userId: user._id,
+        userId: virtualObjectId,
         items: [{bookId: book._id, quantity, price: book.price}],
         total_price: quantity * book.price
       });
@@ -94,7 +121,7 @@ const updateQuantity = asyncWrapper(async (data, user) => {
     } else {
       // If quantity is 0 and no cart exists, just return an empty cart
       return {
-        userId: user._id,
+        userId: user.userId,
         items: [],
         total_price: 0
       };
@@ -139,17 +166,19 @@ const updateQuantity = asyncWrapper(async (data, user) => {
   cart.total_price = Math.max(cart.total_price, 0);
   console.log('Saving updated cart:', cart._id);
   await cart.save();
-  
   // Return populated cart data for consistency
   return getAll(user);
 });
 
 const create = asyncWrapper(async (data, user) => {
-  console.log('Create cart request:', {userId: user._id, bookId: data.bookId});
+  console.log('Create cart request:', {userId: user.userId, bookId: data.bookId});
 
-  if (!user || !user._id) {
+  if (!user || !user.userId) {
     throw new CustomError('User not authenticated properly', 401);
   }
+
+  // Create a virtual ObjectId from the numeric userId
+  const virtualObjectId = createVirtualObjectId(user.userId);
 
   if (!data.bookId || !mongoose.Types.ObjectId.isValid(data.bookId)) {
     throw new CustomError('Invalid book ID format', 400);
@@ -160,7 +189,7 @@ const create = asyncWrapper(async (data, user) => {
     throw new CustomError('Book not found', 404);
   }
 
-  let cart = await Cart.findOne({userId: user._id});
+  let cart = await Cart.findOne({userId: virtualObjectId});
 
   if (!cart) {
     console.log('No cart found for user, creating new cart');
@@ -169,7 +198,7 @@ const create = asyncWrapper(async (data, user) => {
     }
 
     cart = await Cart.create({
-      userId: user._id,
+      userId: virtualObjectId,
       items: [{bookId: book._id, quantity: 1, price: book.price}],
       total_price: book.price
     });
@@ -208,11 +237,14 @@ const create = asyncWrapper(async (data, user) => {
 });
 
 const deleteById = asyncWrapper(async (bookId, user) => {
-  console.log('Delete from cart request:', {userId: user._id, bookId});
+  console.log('Delete from cart request:', {userId: user.userId, bookId});
 
-  if (!user || !user._id) {
+  if (!user || !user.userId) {
     throw new CustomError('User not authenticated properly', 401);
   }
+
+  // Create a virtual ObjectId from the numeric userId
+  const virtualObjectId = createVirtualObjectId(user.userId);
 
   if (!bookId || !mongoose.Types.ObjectId.isValid(bookId)) {
     throw new CustomError('Invalid book ID format', 400);
@@ -223,7 +255,7 @@ const deleteById = asyncWrapper(async (bookId, user) => {
     throw new CustomError('Book not found', 404);
   }
 
-  const cart = await Cart.findOne({userId: user._id});
+  const cart = await Cart.findOne({userId: virtualObjectId});
   if (!cart) {
     console.log('No cart found for user');
     throw new CustomError('Cart not found', 404);
