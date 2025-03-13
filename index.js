@@ -98,12 +98,9 @@ const wss = new WebSocketServer({port: 8080});
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
 
-  ws.on('message', (data) => {
-    const parsedData = JSON.parse(data);
-
-    console.log('received: ', parsedData);
-    notifyAdmins(parsedData);
-    ws.send(JSON.stringify({message: 'Data received', data: parsedData}));
+  ws.on('message', () => {
+    console.log('received: ');
+    notifyAdmins();
   });
 });
 
