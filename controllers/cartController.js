@@ -6,23 +6,34 @@ import {Books} from '../models/books.js';
 import {Cart} from '../models/cart.js';
 import {Users} from '../models/users.js';
 
-// Helper function to create a virtual ObjectId from a numeric userId
-// This is a workaround to allow us to use the numeric userId while maintaining compatibility
-// with the existing schema that expects an ObjectId
-const createVirtualObjectId = (numericId) => {
-  // Pad the numeric ID to 24 characters (standard ObjectId length)
-  // First convert to string
-  const idStr = numericId.toString();
-  // Then pad with zeros to 24 characters
-  const paddedId = idStr.padStart(24, '0');
+// Helper function to create a virtual ObjectId from a numeric userId or use an existing ObjectId
+// This ensures compatibility between different user ID formats in the system
+const createVirtualObjectId = (id) => {
+  // If id is already an ObjectId instance, return it as is
+  if (id instanceof mongoose.Types.ObjectId) {
+    console.log('ID is already an ObjectId, using as is:', id);
+    return id;
+  }
+  
+  // If id is a valid ObjectId string, convert and return it
+  if (mongoose.Types.ObjectId.isValid(id) && id.toString().length === 24) {
+    console.log('ID is a valid ObjectId string, converting:', id);
+    return new mongoose.Types.ObjectId(id);
+  }
+
+  // Otherwise, treat as a numeric ID and pad it
   try {
-    // Try to create a valid ObjectId
+    const idStr = id.toString();
+    // Then pad with zeros to 24 characters
+    const paddedId = idStr.padStart(24, '0');
+    console.log('Created virtual ObjectId from numeric ID:', id, 'to', paddedId);
     return new mongoose.Types.ObjectId(paddedId);
   } catch (error) {
     console.error('Error creating virtual ObjectId:', error);
-    // If that fails, create a dummy ObjectId (for illustration)
-    // In practice, we should handle this error case properly
-    return new mongoose.Types.ObjectId();
+    // If that fails, create a dummy ObjectId as fallback
+    const fallbackId = new mongoose.Types.ObjectId();
+    console.warn('Using fallback ObjectId:', fallbackId);
+    return fallbackId;
   }
 };
 
@@ -33,20 +44,37 @@ const getAll = asyncWrapper(async (user) => {
     throw new CustomError('User not authenticated properly', 401);
   }
 
-  // Create a virtual ObjectId from the numeric userId
-  const virtualObjectId = createVirtualObjectId(user.userId);
+  // Better ID handling with logging
+  console.log('Original user._id:', user._id);
+  console.log('Original user.userId:', user.userId);
+  
+  // Create a virtual ObjectId with better ID handling
+  const virtualObjectId = createVirtualObjectId(user._id || user.userId);
+  console.log('Looking for cart with userId:', virtualObjectId);
 
   // Use populate to include book details in the response
-  const cart = await Cart.findOne({userId: virtualObjectId})
+  let cart = await Cart.findOne({userId: virtualObjectId})
     .populate({
       path: 'items.bookId',
       model: 'Books',
       select: 'title author image price category description'
     })
     .exec();
+    
+  // If not found with virtual ID, try with original user ID
+  if (!cart && user._id) {
+    console.log('Cart not found with virtual ID, trying with original user._id');
+    cart = await Cart.findOne({userId: user._id})
+      .populate({
+        path: 'items.bookId',
+        model: 'Books',
+        select: 'title author image price category description'
+      })
+      .exec();
+  }
 
   if (!cart) {
-    console.log('No cart found for user:', user.userId);
+    console.log('No cart found for user, returning empty cart');
     // Instead of throwing an error, return an empty cart
     return {
       userId: user.userId,
@@ -54,7 +82,9 @@ const getAll = asyncWrapper(async (user) => {
       total_price: 0
     };
   }
-
+  
+  console.log('Found cart for user:', cart._id);
+  
   // Transform the populated data to match the frontend's expected structure
   const transformedCart = {
     _id: cart._id,
@@ -99,7 +129,7 @@ const getAll = asyncWrapper(async (user) => {
     })
   };
 
-  console.log('Cart found and populated with book details:', cart._id);
+  console.log('Cart transformed with book details:', transformedCart._id);
   return transformedCart;
 });
 
@@ -200,8 +230,13 @@ const create = asyncWrapper(async (data, user) => {
     throw new CustomError('User not authenticated properly', 401);
   }
 
-  // Create a virtual ObjectId from the numeric userId
-  const virtualObjectId = createVirtualObjectId(user.userId);
+  // Better logging for userId handling
+  console.log('Original user._id:', user._id);
+  console.log('Original user.userId:', user.userId);
+  
+  // Create a virtual ObjectId from the user ID, with better logging
+  const virtualObjectId = createVirtualObjectId(user._id || user.userId);
+  console.log('Using virtual ObjectId for cart:', virtualObjectId);
 
   if (!data.bookId || !mongoose.Types.ObjectId.isValid(data.bookId)) {
     throw new CustomError('Invalid book ID format', 400);
@@ -212,7 +247,14 @@ const create = asyncWrapper(async (data, user) => {
     throw new CustomError('Book not found', 404);
   }
 
+  // Try to find existing cart with better ID handling
   let cart = await Cart.findOne({userId: virtualObjectId});
+  
+  // If not found, try with original user ID
+  if (!cart && user._id) {
+    console.log('Cart not found with virtual ID, trying with original _id');
+    cart = await Cart.findOne({userId: user._id});
+  }
 
   if (!cart) {
     console.log('No cart found for user, creating new cart');
