@@ -25,7 +25,7 @@ const server = createServer(app); // Create HTTP server for WebSocket support
 app.use(requestLogger);
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(cors({origin: 'http://localhost:4200'}));
+app.use(cors({origin: ['http://localhost:4200', 'https://online-bookstore-ui.vercel.app']}));
 
 const client = createClient({
   username: 'default',
